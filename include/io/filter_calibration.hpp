@@ -10,11 +10,19 @@
 #ifndef INCLUDE_IO_FILTER_CALIBRATION_HPP_
 #define INCLUDE_IO_FILTER_CALIBRATION_HPP_
 
+#include <functional>
+
+#include <Eigen/Dense>
+
 namespace bf_io
 {
     struct FilterCalibration
     {
-        
+        std::function<Eigen::VectorXf(const Eigen::VectorXf & state, const float time_delta)> transition;
+        std::function<Eigen::MatrixXf(const Eigen::VectorXf & state)> transition_jacobian;
+
+        std::function<Eigen::VectorXf(const Eigen::VectorXf & state)> observation;
+        std::function<Eigen::MatrixXf(const Eigen::VectorXf & state)> observation_jacobian;
     };
 }   // namespace bf_io
 

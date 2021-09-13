@@ -27,7 +27,10 @@ namespace bf
             explicit UnscentedKalmanFilter(const bf_io::FilterCalibration & calibration);
 
         protected:
-            void RunFilterInternal(const bf_io::ValueWithTimestampAndCovariance & measurement);
+            StateWithCovariance Prediction(const float time_delta);
+            StateWithCovariance Correction(const bf_io::ValueWithTimestampAndCovariance & measurement,
+                const Eigen::VectorXf & predicted_state,
+                const Eigen::MatrixXf & predicted_covariance);
     };
 }   // namespace bf
 

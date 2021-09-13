@@ -15,7 +15,29 @@ namespace bf
         : CoreBayesianFilter(calibration) {
     }
 
-    void KalmanFilter::RunFilterInternal(const bf_io::ValueWithTimestampAndCovariance & measurement) {
-        
+    KalmanFilter::StateWithCovariance KalmanFilter::Prediction(const float time_delta) {
+        auto predicted_state = transition_(estimated_state_, time_delta);
+        auto jacobian = transition_jacobian_(estimated_state_);
+        auto predicted_covariance = jacobian * estimated_covariance_ * jacobian.transpose();
+
+        return std::make_tuple(predicted_state, predicted_covariance);
+    }
+
+    KalmanFilter::StateWithCovariance KalmanFilter::Correction(const bf_io::ValueWithTimestampAndCovariance & measurement,
+        const Eigen::VectorXf & predicted_state,
+        const Eigen::MatrixXf & predicted_covariance) {
+        auto [y, R] = ConvertMeasurement(measurement);
+        Eigen::MatrixXf observation_jacobian = observation_jacobian_(predicted_state);
+
+        Eigen::MatrixXf innovation = y - observation_(predicted_state);
+        Eigen::MatrixXf innovation_covariance = observation_jacobian * predicted_covariance * observation_jacobian.transpose() + R;
+        Eigen::MatrixXf kalman_gain = predicted_covariance * observation_jacobian.transpose() * innovation_covariance.inverse();
+
+        Eigen::MatrixXf estimated_state = predicted_state + kalman_gain * innovation;
+        Eigen::MatrixXf tmp = Eigen::MatrixXf::Identity(predicted_state.size(), predicted_state.size());
+        Eigen::MatrixXf estimated_covariance = tmp * predicted_covariance * tmp.transpose()
+            + kalman_gain * observation_jacobian * kalman_gain.transpose();
+
+        return std::make_tuple(estimated_state, estimated_covariance);
     }
 }   // namespace bf
