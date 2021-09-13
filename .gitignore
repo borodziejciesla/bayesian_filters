@@ -30,3 +30,16 @@
 *.exe
 *.out
 *.app
+
+# Build products
+build/
+
+# VS Code
+.vscode/
+log/
+
+# Other folders
+.cccc/
+
+# Other files
+cppcheck_output*
