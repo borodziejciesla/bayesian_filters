@@ -26,7 +26,7 @@ namespace bf
             BayesianFilter(void) = delete;
             BayesianFilter(const BayesianFilter & obj) = delete;
             BayesianFilter(BayesianFilter && obj) = delete;
-            ~BayesianFilter(void) = default;
+            ~BayesianFilter(void);
 
             BayesianFilter(const bf_io::FilterType filter_type, const bf_io::FilterCalibration & calibration);
 

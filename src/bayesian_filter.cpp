@@ -13,6 +13,8 @@
 
 namespace bf
 {
+    BayesianFilter::~BayesianFilter(void) = default;
+
     BayesianFilter::BayesianFilter(const bf_io::FilterType filter_type, const bf_io::FilterCalibration & calibration)
         : calibration_{calibration} {
         core_filter_ = BayesianFilterFactory::CreateFilter(filter_type, calibration_);
