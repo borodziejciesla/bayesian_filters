@@ -7,8 +7,8 @@
  * this file. If not, please write to: , or visit :
  */
 
-#ifndef INCLUDE_IO_STATE_WITH_COVARIANCE_HPP_
-#define INCLUDE_IO_STATE_WITH_COVARIANCE_HPP_
+#ifndef INCLUDE_IO_VALUE_WITH_TIMESTAMP_AND_COVARIANCE_HPP_
+#define INCLUDE_IO_VALUE_WITH_TIMESTAMP_AND_COVARIANCE_HPP_
 
 #include "covariance.hpp"
 
@@ -23,4 +23,4 @@ namespace bf_io
     };
 }   // namespace bf_io
 
-#endif  //  INCLUDE_IO_STATE_WITH_COVARIANCE_HPP_
+#endif  //  INCLUDE_IO_VALUE_WITH_TIMESTAMP_AND_COVARIANCE_HPP_

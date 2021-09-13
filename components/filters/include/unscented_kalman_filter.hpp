@@ -7,8 +7,8 @@
  * this file. If not, please write to: , or visit :
  */
 
-#ifndef COMPONENTS_FILTERS_CORE_UNSCENTED_KALMAN_FILTER_HPP_
-#define COMPONENTS_FILTERS_CORE_UNSCENTED_KALMAN_FILTER_HPP_
+#ifndef COMPONENTS_FILTERS_INCLUDE_UNSCENTED_KALMAN_FILTER_HPP_
+#define COMPONENTS_FILTERS_INCLUDE_UNSCENTED_KALMAN_FILTER_HPP_
 
 #include "core_bayesian_filter.hpp"
 #include "filter_calibration.hpp"
@@ -34,4 +34,4 @@ namespace bf
     };
 }   // namespace bf
 
-#endif  //  COMPONENTS_FILTERS_CORE_UNSCENTED_KALMAN_FILTER_HPP_
+#endif  //  COMPONENTS_FILTERS_INCLUDE_UNSCENTED_KALMAN_FILTER_HPP_

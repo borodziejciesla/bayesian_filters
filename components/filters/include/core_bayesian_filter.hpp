@@ -7,8 +7,8 @@
  * this file. If not, please write to: , or visit :
  */
 
-#ifndef COMPONENTS_FILTERS_CORE_BAYESIAN_FILTER_HPP_
-#define COMPONENTS_FILTERS_CORE_BAYESIAN_FILTER_HPP_
+#ifndef COMPONENTS_FILTERS_INCLUDE_CORE_BAYESIAN_FILTER_HPP_
+#define COMPONENTS_FILTERS_INCLUDE_CORE_BAYESIAN_FILTER_HPP_
 
 #include <functional>
 #include <tuple>
@@ -27,7 +27,7 @@ namespace bf
             CoreBayesianFilter(void) = delete;
             CoreBayesianFilter(const CoreBayesianFilter & obj) = delete;
             CoreBayesianFilter(CoreBayesianFilter && obj) = delete;
-            ~CoreBayesianFilter(void) = default;
+            virtual ~CoreBayesianFilter(void) = default;
 
             explicit CoreBayesianFilter(const bf_io::FilterCalibration & calibration);
 
@@ -64,4 +64,4 @@ namespace bf
     };
 }   // namespace bf
 
-#endif  //  COMPONENTS_FILTERS_CORE_BAYESIAN_FILTER_HPP_
+#endif  //  COMPONENTS_FILTERS_INCLUDE_CORE_BAYESIAN_FILTER_HPP_
