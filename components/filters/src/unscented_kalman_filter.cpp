@@ -13,31 +13,62 @@ namespace bf
 {
     UnscentedKalmanFilter::UnscentedKalmanFilter(const bf_io::FilterCalibration & calibration)
         : CoreBayesianFilter(calibration) {
+        dimension_ = calibration.state_dimension_;
+
+        central_weight_ = lambda_ / (static_cast<float>(dimension_) + lambda_);
+        central_sigma_point_ = Eigen::VectorXf::Zero(dimension_);
+
+        plus_sigma_points_.resize(dimension_);
+        plus_sigma_points_.assign(dimension_, Eigen::VectorXf::Zero(dimension_));
+        plus_sigma_weights_.resize(dimension_);
+        plus_sigma_weights_.assign(dimension_, 0.5f / (static_cast<float>(dimension_) + lambda_));
+
+        minus_sigma_points_.resize(dimension_);
+        minus_sigma_points_.assign(dimension_, Eigen::VectorXf::Zero(dimension_));
+        minus_sigma_weights_.resize(dimension_);
+        minus_sigma_weights_.assign(dimension_, 0.5f / (static_cast<float>(dimension_) + lambda_));
     }
 
     UnscentedKalmanFilter::StateWithCovariance UnscentedKalmanFilter::Prediction(const float time_delta) {
-        auto predicted_state = transition_(estimated_state_, time_delta);
-        auto jacobian = transition_jacobian_(estimated_state_);
-        auto predicted_covariance = jacobian * estimated_covariance_ * jacobian.transpose();
-
-        return std::make_tuple(predicted_state, predicted_covariance);
+        FindSigmaPoints();
+        PredictSigmaPoints();
+        PredictMeanAndCovariance();
     }
 
     UnscentedKalmanFilter::StateWithCovariance UnscentedKalmanFilter::Correction(const bf_io::ValueWithTimestampAndCovariance & measurement,
-        const Eigen::VectorXf & predicted_state,
-        const Eigen::MatrixXf & predicted_covariance) {
-        auto [y, R] = ConvertMeasurement(measurement);
-        Eigen::MatrixXf observation_jacobian = observation_jacobian_(predicted_state);
+        PredictMeasurement();
+        UpdateState();
+    }
 
-        Eigen::MatrixXf innovation = y - observation_(predicted_state);
-        Eigen::MatrixXf innovation_covariance = observation_jacobian * predicted_covariance * observation_jacobian.transpose() + R;
-        Eigen::MatrixXf kalman_gain = predicted_covariance * observation_jacobian.transpose() * innovation_covariance.inverse();
+    void UnscentedKalmanFilter::FindSigmaPoints(void)
+    {
+        auto S = (static_cast<float>(dimension_) + lambda_) * estimated_covariance_;
+        auto direction = S.sqrt();
 
-        Eigen::MatrixXf estimated_state = predicted_state + kalman_gain * innovation;
-        Eigen::MatrixXf tmp = Eigen::MatrixXf::Identity(predicted_state.size(), predicted_state.size());
-        Eigen::MatrixXf estimated_covariance = tmp * predicted_covariance * tmp.transpose()
-            + kalman_gain * observation_jacobian * kalman_gain.transpose();
+        /* Central */
+        central_sigma_point_ = estimated_state_;
 
-        return std::make_tuple(estimated_state, estimated_covariance);
+        /* Plus/Mius Sigma points */
+        for (auto i = 0u; i < dimension_; i++)
+        {
+            plus_sigma_points_ = central_sigma_point_ + direction;
+            minus_sigma_points_ = central_sigma_point_ - direction;
+        }
+    }
+
+    void UnscentedKalmanFilter::PredictSigmaPoints(void) {
+        //
+    }
+
+    void UnscentedKalmanFilter::PredictMeanAndCovariance(void) {
+        //
+    }
+
+    void UnscentedKalmanFilter::PredictMeasurement(void) {
+        //
+    }
+
+    void UnscentedKalmanFilter::UpdateState(void) {
+        //
     }
 }   // namespace bf

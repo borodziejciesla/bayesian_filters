@@ -18,11 +18,15 @@ namespace bf_io
 {
     struct FilterCalibration
     {
+        size_t state_dimension_ = 0u;
+
         std::function<Eigen::VectorXf(const Eigen::VectorXf & state, const float time_delta)> transition;
         std::function<Eigen::MatrixXf(const Eigen::VectorXf & state)> transition_jacobian;
 
         std::function<Eigen::VectorXf(const Eigen::VectorXf & state)> observation;
         std::function<Eigen::MatrixXf(const Eigen::VectorXf & state)> observation_jacobian;
+
+        Eigen::MatrixXf proccess_noise_covariance;
     };
 }   // namespace bf_io
 
