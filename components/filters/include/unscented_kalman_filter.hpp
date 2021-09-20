@@ -31,6 +31,29 @@ namespace bf
             StateWithCovariance Correction(const bf_io::ValueWithTimestampAndCovariance & measurement,
                 const Eigen::VectorXf & predicted_state,
                 const Eigen::MatrixXf & predicted_covariance);
+
+        private:
+            void FindSigmaPoints(void);
+            void PredictSigmaPoints(const float time_delta);
+            void PredictMeanAndCovariance(void);
+
+            using ValueAndCovariance = std::pair<Eigen::VectorXf, Eigen::MatrixXf>;
+
+            ValueAndCovariance PredictMeasurement(const StateWithCovariance & measurement);
+            StateWithCovariance UpdateState(const ValueAndCovariance & predicted_measurement,
+                const StateWithCovariance & measurement);
+
+            Eigen::VectorXf predicted_state_;
+            Eigen::MatrixXf predicted_covariance_;
+
+            size_t dimension_ = 0u;
+            size_t measurement_dimension_ = 0u;
+            size_t sigma_points_number_ = 0u;
+            float lambda_ = 3.0f;
+
+            using SigmaPointWithWeight = std::pair<Eigen::VectorXf, float>;
+
+            std::vector<SigmaPointWithWeight> sigma_points_;
     };
 }   // namespace bf
 
