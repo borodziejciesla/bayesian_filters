@@ -1,5 +1,7 @@
 #include "gtest/gtest.h"
 
+#include <tuple>
+
 #include "bayesian_filter.hpp"
 
 class BayesianFilterTests : public ::testing::TestWithParam<bf_io::FilterType>
@@ -12,21 +14,29 @@ TEST_P(BayesianFilterTests, TestConstructor) {
     auto filter_type = GetParam();
 
     calibrations_.transition = [](const Eigen::VectorXf & state, const float time_delta) {
+        std::ignore = state;
+        std::ignore = time_delta;
         return Eigen::VectorXf::Zero(1);
     };
 
     calibrations_.transition_jacobian = [](const Eigen::VectorXf & state) {
-        return Eigen::VectorXf::Ones(1);
+        std::ignore = state;
+        return Eigen::MatrixXf::Ones(1, 1);
     };
 
     calibrations_.observation = [](const Eigen::VectorXf & state) {
+        std::ignore = state;
         return Eigen::VectorXf::Zero(1);
     };
 
     calibrations_.observation_jacobian = [](const Eigen::VectorXf & state) {
-        return Eigen::VectorXf::Ones(1);
+        std::ignore = state;
+        return Eigen::MatrixXf::Ones(1, 1);
     };
 
+    calibrations_.state_dimension_ = 1u;
+    calibrations_.measurement_dimension_ = 1u;
+    calibrations_.proccess_noise_covariance = Eigen::MatrixXf::Ones(1, 1);
 
     if (filter_type != bf_io::FilterType::NONE)
         EXPECT_NO_THROW(bf::BayesianFilter filter(filter_type, calibrations_));
