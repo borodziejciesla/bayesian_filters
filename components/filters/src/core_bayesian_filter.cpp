@@ -40,7 +40,7 @@ namespace bf
         auto size = measurement.state.size();
         
         Eigen::VectorXf value(size);
-        for (auto idx = 0u; idx < size; idx++)
+        for (size_t idx = 0u; idx < size; idx++)
             value(idx) = measurement.state.at(idx++);
 
         Eigen::VectorXf covariance(size, size);

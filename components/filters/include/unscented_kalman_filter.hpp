@@ -10,8 +10,6 @@
 #ifndef COMPONENTS_FILTERS_INCLUDE_UNSCENTED_KALMAN_FILTER_HPP_
 #define COMPONENTS_FILTERS_INCLUDE_UNSCENTED_KALMAN_FILTER_HPP_
 
-#include <vector>
-
 #include "core_bayesian_filter.hpp"
 #include "filter_calibration.hpp"
 #include "value_with_timestamp_and_covariance.hpp"
@@ -36,21 +34,26 @@ namespace bf
 
         private:
             void FindSigmaPoints(void);
-            void PredictSigmaPoints(void);
+            void PredictSigmaPoints(const float time_delta);
             void PredictMeanAndCovariance(void);
 
-            void PredictMeasurement(void);
-            void UpdateState(void);
+            using ValueAndCovariance = std::pair<Eigen::VectorXf, Eigen::MatrixXf>;
+
+            ValueAndCovariance PredictMeasurement(const StateWithCovariance & measurement);
+            StateWithCovariance UpdateState(const ValueAndCovariance & predicted_measurement,
+                const StateWithCovariance & measurement);
+
+            Eigen::VectorXf predicted_state_;
+            Eigen::MatrixXf predicted_covariance_;
 
             size_t dimension_ = 0u;
+            size_t measurement_dimension_ = 0u;
+            size_t sigma_points_number_ = 0u;
             float lambda_ = 3.0f;
 
-            float central_weight_;
-            Eigen::VectorXf central_sigma_point_;
-            std::vector<float> plus_sigma_weights_;
-            std::vector<Eigen::VectorXf> plus_sigma_points_;
-            std::vector<float> minus_sigma_weights_;
-            std::vector<Eigen::VectorXf> minus_sigma_points_;
+            using SigmaPointWithWeight = std::pair<Eigen::VectorXf, float>;
+
+            std::vector<SigmaPointWithWeight> sigma_points_;
     };
 }   // namespace bf
 
