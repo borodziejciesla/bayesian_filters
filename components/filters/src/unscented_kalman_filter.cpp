@@ -18,9 +18,7 @@ namespace bf
 {
     UnscentedKalmanFilter::UnscentedKalmanFilter(const bf_io::FilterCalibration & calibration)
         : CoreBayesianFilter(calibration) {
-        dimension_ = calibration.state_dimension_;
-        measurement_dimension_ = calibration.measurement_dimension;
-        sigma_points_number_ = 2u * dimension_;
+        sigma_points_number_ = 2u * dimension_ + 1u;
 
         sigma_points_.resize(sigma_points_number_);
 
@@ -31,7 +29,7 @@ namespace bf
             [this](auto arg) {
                 std::ignore = arg;
                 return std::make_pair(Eigen::VectorXf::Zero(dimension_),
-                    lambda_ / (static_cast<float>(dimension_) + lambda_));
+                    lambda_ / (2.0f * (static_cast<float>(dimension_) + lambda_)) );
             }
         );
     }
@@ -65,7 +63,7 @@ namespace bf
         sigma_points_.at(0).first = estimated_state_;
 
         /* Plus/Mius Sigma points */
-        std::for_each(sigma_points_.begin() + 1u, sigma_points_.end() + dimension_ + 1u,
+        std::for_each(sigma_points_.begin() + 1u, sigma_points_.begin() + dimension_ + 1u,
             [this,direction,idx=0](SigmaPointWithWeight & sigma_point) {
                 for (auto row = 0u; row < dimension_; row++)
                     sigma_point.first(row) = estimated_state_(row) + direction(row, idx);

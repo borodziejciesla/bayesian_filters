@@ -46,6 +46,9 @@ namespace bf
 
             bf_io::ValueWithTimestampAndCovariance state_;
 
+            size_t dimension_ = 0u;
+            size_t measurement_dimension_ = 0u;
+
             Eigen::VectorXf estimated_state_;
             Eigen::MatrixXf estimated_covariance_;
 

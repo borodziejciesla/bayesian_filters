@@ -45,9 +45,7 @@ namespace bf
 
             Eigen::VectorXf predicted_state_;
             Eigen::MatrixXf predicted_covariance_;
-
-            size_t dimension_ = 0u;
-            size_t measurement_dimension_ = 0u;
+            
             size_t sigma_points_number_ = 0u;
             float lambda_ = 3.0f;
 

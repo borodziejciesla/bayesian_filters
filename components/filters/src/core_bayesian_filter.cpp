@@ -18,6 +18,13 @@ namespace bf
         , transition_jacobian_{calibration.transition_jacobian}
         , observation_{calibration.observation}
         , observation_jacobian_{calibration.observation_jacobian} {
+        dimension_ = calibration.state_dimension_;
+        measurement_dimension_ = calibration.measurement_dimension;
+
+        estimated_state_ = Eigen::VectorXf::Zero(dimension_);
+        estimated_covariance_ = Eigen::MatrixXf::Zero(dimension_, dimension_);
+        for (auto index = 0u; index < dimension_; index++)
+            estimated_covariance_(index, index) = 1.0e9f;
     }
 
     void CoreBayesianFilter::RunFilter(const bf_io::ValueWithTimestampAndCovariance & measurement) {
@@ -39,11 +46,18 @@ namespace bf
     CoreBayesianFilter::StateWithCovariance CoreBayesianFilter::ConvertMeasurement(const bf_io::ValueWithTimestampAndCovariance & measurement) const {
         auto size = measurement.state.size();
         
-        Eigen::VectorXf value(size);
+        Eigen::VectorXf measurementr_value;
+        measurementr_value.resize(size);
         for (size_t idx = 0u; idx < size; idx++)
-            value(idx) = measurement.state.at(idx++);
+        {
+            measurementr_value(idx) = measurement.state.at(idx);
+            idx++;
+        }
 
-        Eigen::VectorXf covariance(size, size);
+        Eigen::MatrixXf covariance(size, size);
+        for (size_t diag_idx = 0u; diag_idx < size; diag_idx++)
+            covariance(diag_idx, diag_idx) = measurement.covariance.diagonal.at(diag_idx);
+
         auto idx = 0u;
         for (auto r = 1u; r < size; r++)
         {
@@ -55,7 +69,7 @@ namespace bf
             }
         }
 
-        return std::make_tuple(value, covariance);
+        return std::make_tuple(measurementr_value, covariance);
     }
 
     void CoreBayesianFilter::ConvertEstimateToOutput(const Eigen::VectorXf & state, const Eigen::MatrixXf & covariance) {
@@ -76,8 +90,8 @@ namespace bf
     bf_io::Covariance CoreBayesianFilter::ConvertMatrixToCovariance(const Eigen::MatrixXf & covariance) const {
         bf_io::Covariance output;
         
-        if (covariance.rows() == covariance.cols())
-            throw std::invalid_argument("oreBayesianFilter::ConvertMatrixToCovariance - invalid matrix size!");
+        if (covariance.rows() != covariance.cols())
+            throw std::invalid_argument("CoreBayesianFilter::ConvertMatrixToCovariance - invalid matrix size!");
 
         auto size = covariance.rows();
 
