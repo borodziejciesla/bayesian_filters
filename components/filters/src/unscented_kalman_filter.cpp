@@ -19,7 +19,7 @@ namespace bf
     UnscentedKalmanFilter::UnscentedKalmanFilter(const bf_io::FilterCalibration & calibration)
         : CoreBayesianFilter(calibration) {
         dimension_ = calibration.state_dimension_;
-        measurement_dimension_ = calibration.measurement_dimension_;
+        measurement_dimension_ = calibration.measurement_dimension;
         sigma_points_number_ = 2u * dimension_;
 
         sigma_points_.resize(sigma_points_number_);
