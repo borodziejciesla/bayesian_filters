@@ -35,7 +35,7 @@ TEST_P(BayesianFilterTests, TestConstructor) {
     };
 
     calibrations_.state_dimension_ = 1u;
-    calibrations_.measurement_dimension_ = 1u;
+    calibrations_.measurement_dimension = 1u;
     calibrations_.proccess_noise_covariance = Eigen::MatrixXf::Ones(1, 1);
 
     if (filter_type != bf_io::FilterType::NONE)
