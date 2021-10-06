@@ -13,9 +13,9 @@ C++ implementation of different types of Bayesian filters
 ### Kalman Filter
 #### Process Model
 Prediction model:
-$$
-  x_{k} = A_{k}x_{k-1} + B_{k}u_{k} + G_{k}w_{k}
-$$
+
+<a href="https://www.codecogs.com/eqnedit.php?latex=x_{k}&space;=&space;A_{k}x_{k-1}&space;&plus;&space;B_{k}u_{k}&space;&plus;&space;G_{k}w_{k}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?x_{k}&space;=&space;A_{k}x_{k-1}&space;&plus;&space;B_{k}u_{k}&space;&plus;&space;G_{k}w_{k}" title="x_{k} = A_{k}x_{k-1} + B_{k}u_{k} + G_{k}w_{k}" /></a>
+
 Where:
 * $w_{k}$ - Gaussian noise $\mathit{N}(0, Q_{k})$
 
