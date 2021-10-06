@@ -111,7 +111,10 @@ namespace bf
         Eigen::MatrixXf predicted_measurement = std::accumulate(sigma_points_.begin(), sigma_points_.end(),
             static_cast<Eigen::VectorXf>(Eigen::VectorXf::Zero(measurement_dimension_)),
             [this](Eigen::VectorXf accumulated, const SigmaPointWithWeight & sigma_point) {
-                return accumulated + observation_(sigma_point.first) * sigma_point.second;
+                auto observation = observation_(sigma_point.first);
+                auto weighted_observation = static_cast<Eigen::VectorXf>(observation * sigma_point.second);
+                auto sum = static_cast<Eigen::VectorXf>(accumulated + weighted_observation);
+                return sum;
             }
         );
 
@@ -119,8 +122,8 @@ namespace bf
         Eigen::MatrixXf predicted_covariance = std::accumulate(sigma_points_.begin(), sigma_points_.end(),
             static_cast<Eigen::MatrixXf>(Eigen::MatrixXf::Zero(measurement_dimension_, measurement_dimension_)),
             [this,predicted_measurement](Eigen::MatrixXf accumulated, const SigmaPointWithWeight & sigma_point) {
-                auto difference = observation_(sigma_point.first) - predicted_measurement;
-                return accumulated + sigma_point.second * (difference * difference.transpose());
+                auto difference = static_cast<Eigen::VectorXf>(observation_(sigma_point.first) - predicted_measurement);
+                return static_cast<Eigen::VectorXf>(accumulated + sigma_point.second * (difference * difference.transpose()));
             }
         ) + std::get<1>(measurement);
 

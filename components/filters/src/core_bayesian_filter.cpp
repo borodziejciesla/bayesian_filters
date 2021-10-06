@@ -24,7 +24,7 @@ namespace bf
         estimated_state_ = Eigen::VectorXf::Zero(dimension_);
         estimated_covariance_ = Eigen::MatrixXf::Zero(dimension_, dimension_);
         for (auto index = 0u; index < dimension_; index++)
-            estimated_covariance_(index, index) = 1.0e9f;
+            estimated_covariance_(index, index) = 1.0e2f;
     }
 
     void CoreBayesianFilter::RunFilter(const bf_io::ValueWithTimestampAndCovariance & measurement) {
