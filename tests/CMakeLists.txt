@@ -16,8 +16,10 @@ FetchContent_MakeAvailable(googletest)
 # Tests
 ################################
 add_executable(${TEST_PROJECT_NAME}
+    bayesian_filter_tests.cpp
     filter_factory_tests.cpp
 
+    $<TARGET_OBJECTS:bayesian_filters>
     $<TARGET_OBJECTS:filter_factory>
     $<TARGET_OBJECTS:filters>
 )
@@ -26,6 +28,7 @@ target_link_libraries(${TEST_PROJECT_NAME}
     gtest 
     gtest_main
     
+    bayesian_filters    
     filter_factory
     filters
 )

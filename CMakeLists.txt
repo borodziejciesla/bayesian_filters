@@ -33,7 +33,7 @@ option(MAKE_CPPLINT "Make code style analysis" OFF)
 ################################################
 include(GNUInstallDirs)
 
-add_library(${PROJECT_NAME} 
+add_library(${PROJECT_NAME}
     src/bayesian_filter.cpp
 
     $<TARGET_OBJECTS:filter_factory>
@@ -44,6 +44,7 @@ target_include_directories(${PROJECT_NAME}
     PUBLIC
         include
         include/io
+        $<TARGET_PROPERTY:eigen,INTERFACE_INCLUDE_DIRECTORIES>
     PRIVATE
         $<TARGET_PROPERTY:filter_factory,INTERFACE_INCLUDE_DIRECTORIES>
         $<TARGET_PROPERTY:filters,INTERFACE_INCLUDE_DIRECTORIES>

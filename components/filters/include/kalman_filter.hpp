@@ -7,8 +7,8 @@
  * this file. If not, please write to: , or visit :
  */
 
-#ifndef COMPONENTS_FILTERS_CORE_KALMAN_FILTER_HPP_
-#define COMPONENTS_FILTERS_CORE_KALMAN_FILTER_HPP_
+#ifndef COMPONENTS_FILTERS_INCLUDE_KALMAN_FILTER_HPP_
+#define COMPONENTS_FILTERS_INCLUDE_KALMAN_FILTER_HPP_
 
 #include "core_bayesian_filter.hpp"
 #include "filter_calibration.hpp"
@@ -27,8 +27,11 @@ namespace bf
             explicit KalmanFilter(const bf_io::FilterCalibration & calibration);
 
         protected:
-            void RunFilterInternal(const bf_io::ValueWithTimestampAndCovariance & measurement);
+            StateWithCovariance Prediction(const float time_delta);
+            StateWithCovariance Correction(const bf_io::ValueWithTimestampAndCovariance & measurement,
+                const Eigen::VectorXf & predicted_state,
+                const Eigen::MatrixXf & predicted_covariance);
     };
 }   // namespace bf
 
-#endif  //  COMPONENTS_FILTERS_CORE_KALMAN_FILTER_HPP_
+#endif  //  COMPONENTS_FILTERS_INCLUDE_KALMAN_FILTER_HPP_

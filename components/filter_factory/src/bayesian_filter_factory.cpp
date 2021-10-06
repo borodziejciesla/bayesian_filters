@@ -27,6 +27,7 @@ namespace bf
             case bf_io::FilterType::UKF:
                 return std::make_unique<UnscentedKalmanFilter>(calibration);
             case bf_io::FilterType::NONE:
+            default:
                 throw std::invalid_argument("BayesianFilterFactory::CreateFilter - Invalid filter type!");
         }
     }

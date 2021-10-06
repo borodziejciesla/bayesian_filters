@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.13)
 
-add_library(filter_factory
+add_library(filter_factory OBJECT
     src/bayesian_filter_factory.cpp
 )
 
