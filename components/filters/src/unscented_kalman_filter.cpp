@@ -136,18 +136,19 @@ namespace bf
         auto T = std::accumulate(sigma_points_.begin(), sigma_points_.end(),
             static_cast<Eigen::MatrixXf>(Eigen::MatrixXf::Zero(dimension_, measurement_dimension_)),
             [this,predicted_measurement](Eigen::MatrixXf accumulated, const SigmaPointWithWeight & sigma_point) {
-                auto diff_state = sigma_point.first - predicted_state_;
-                auto diff_measurement = observation_(sigma_point.first) - predicted_measurement.first;
-                return accumulated + diff_state * diff_measurement.transpose();
+                auto diff_state = static_cast<Eigen::MatrixXf>(sigma_point.first - predicted_state_);
+                auto diff_measurement = static_cast<Eigen::MatrixXf>(observation_(sigma_point.first) - predicted_measurement.first);
+                auto cross_single = static_cast<Eigen::MatrixXf>(diff_state * diff_measurement.transpose());
+                return static_cast<Eigen::MatrixXf>(accumulated + cross_single);
             }
         );
         
         /* Kalman Gain */
-        auto kalman_gain = T * predicted_measurement.second.transpose();
+        auto kalman_gain = static_cast<Eigen::MatrixXf>(T * predicted_measurement.second.transpose());
 
         /* Calculate estimate */
-        auto estimated_state = predicted_measurement.first + kalman_gain * (std::get<0>(measurement) - predicted_measurement.first);
-        auto estimated_covariance = (Eigen::MatrixXf::Identity(dimension_, dimension_) - kalman_gain * T) * predicted_covariance_;
+        auto estimated_state = static_cast<Eigen::VectorXf>(static_cast<Eigen::VectorXf>(predicted_state_) + static_cast<Eigen::VectorXf>(kalman_gain * static_cast<Eigen::VectorXf>(std::get<0>(measurement) - predicted_measurement.first)));
+        auto estimated_covariance = predicted_covariance_ - kalman_gain * predicted_measurement.second * kalman_gain.transpose();
 
         return std::make_tuple(estimated_state, estimated_covariance);
     }

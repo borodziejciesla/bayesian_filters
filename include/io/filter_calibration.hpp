@@ -22,7 +22,7 @@ namespace bf_io
         size_t measurement_dimension = 0u;
 
         std::function<Eigen::VectorXf(const Eigen::VectorXf & state, const float time_delta)> transition;
-        std::function<Eigen::MatrixXf(const Eigen::VectorXf & state)> transition_jacobian;
+        std::function<Eigen::MatrixXf(const Eigen::VectorXf & state, const float time_delta)> transition_jacobian;
 
         std::function<Eigen::VectorXf(const Eigen::VectorXf & state)> observation;
         std::function<Eigen::MatrixXf(const Eigen::VectorXf & state)> observation_jacobian;
