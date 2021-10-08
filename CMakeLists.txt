@@ -5,6 +5,7 @@ cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
 
 set(PROJECT_NAME bayesian_filters)
 set(TEST_PROJECT_NAME ${PROJECT_NAME}_tests)
+set(EXAMPLE_PROJECT_NAME ${PROJECT_NAME}_example)
 
 project(${PROJECT_NAME})
 
@@ -25,6 +26,7 @@ endif()
 set(CMAKE_CXX_OUTPUT_EXTENSION_REPLACE ON)
 
 option(BUILD_TESTS "Build tests" ON)
+option(BUILD_EXAMPLE "Build example" ON)
 option(MAKE_CPPCHECK "Make static code analysis" OFF)
 option(MAKE_CPPLINT "Make code style analysis" OFF)
 
@@ -74,6 +76,15 @@ if(UNIX)
         ) 
     endif() # CMAKE_BUILD_TYPE STREQUAL "Coverage"
 endif() # UNIX
+
+###############################################
+################# Examples ####################
+###############################################
+if(BUILD_EXAMPLE)
+    project(${EXAMPLE_PROJECT_NAME})
+    
+    add_subdirectory(examples)
+endif() # BUILD_EXAMPLE
 
 ###############################################
 ################ Unit Tests ###################

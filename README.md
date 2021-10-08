@@ -194,3 +194,5 @@ Result is in the same format as measurement, contains timestamp of estimation, e
   * lcov
 * Coding style check
   * cpplint 1.5.5 or higher
+* Other:
+  * Python 3.8 - for plotting
