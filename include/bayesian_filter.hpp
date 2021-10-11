@@ -12,6 +12,8 @@
 
 #include <memory>
 
+#include <Eigen/Dense>
+
 #include "filter_calibration.hpp"
 #include "filter_type.hpp"
 #include "value_with_timestamp_and_covariance.hpp"

@@ -139,16 +139,18 @@ namespace bf
                 auto diff_state = static_cast<Eigen::MatrixXf>(sigma_point.first - predicted_state_);
                 auto diff_measurement = static_cast<Eigen::MatrixXf>(observation_(sigma_point.first) - predicted_measurement.first);
                 auto cross_single = static_cast<Eigen::MatrixXf>(diff_state * diff_measurement.transpose());
-                return static_cast<Eigen::MatrixXf>(accumulated + cross_single);
+                return static_cast<Eigen::MatrixXf>(accumulated + sigma_point.second * cross_single);
             }
         );
         
         /* Kalman Gain */
-        auto kalman_gain = static_cast<Eigen::MatrixXf>(T * predicted_measurement.second.transpose());
+        auto kalman_gain = static_cast<Eigen::MatrixXf>(T * predicted_measurement.second.inverse());
 
         /* Calculate estimate */
         auto estimated_state = static_cast<Eigen::VectorXf>(static_cast<Eigen::VectorXf>(predicted_state_) + static_cast<Eigen::VectorXf>(kalman_gain * static_cast<Eigen::VectorXf>(std::get<0>(measurement) - predicted_measurement.first)));
-        auto estimated_covariance = predicted_covariance_ - kalman_gain * predicted_measurement.second * kalman_gain.transpose();
+        auto estimated_covariance = static_cast<Eigen::MatrixXf>(predicted_covariance_ - static_cast<Eigen::MatrixXf>(kalman_gain * predicted_measurement.second * kalman_gain.transpose()));
+        //Eigen::MatrixXf tmp = static_cast<Eigen::MatrixXf>(Eigen::MatrixXf::Identity(estimated_state.size(), estimated_state.size())) - kalman_gain * T;
+        //Eigen::MatrixXf estimated_covariance = tmp * predicted_covariance_;
 
         return std::make_tuple(estimated_state, estimated_covariance);
     }
