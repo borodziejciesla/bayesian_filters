@@ -14,12 +14,12 @@
 namespace bf
 {
     CoreBayesianFilter::CoreBayesianFilter(const bf_io::FilterCalibration & calibration)
-        : transition_{calibration.transition}
+        : process_noise_covariance_{calibration.proccess_noise_covariance}
+        , transition_{calibration.transition}
         , transition_jacobian_{calibration.transition_jacobian}
         , observation_{calibration.observation}
-        , observation_jacobian_{calibration.observation_jacobian}
-        , process_noise_covariance_{calibration.proccess_noise_covariance} {
-        dimension_ = calibration.state_dimension_;
+        , observation_jacobian_{calibration.observation_jacobian} {
+        dimension_ = calibration.state_dimension;
         measurement_dimension_ = calibration.measurement_dimension;
 
         estimated_state_ = Eigen::VectorXf::Random(dimension_);

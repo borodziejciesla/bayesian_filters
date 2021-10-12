@@ -1,3 +1,12 @@
+/* Copyright (C) 2021 Maciej Rozewicz - All Rights Reserved
+ * You may use, distribute and modify this code under the
+ * terms of the XYZ license, which unfortunately won't be
+ * written for another century.
+ *
+ * You should have received a copy of the XYZ license with
+ * this file. If not, please write to: , or visit :
+ */
+
 #include <iostream>
 #include <cmath>
 #include <random>
@@ -82,10 +91,10 @@ int main(void) {
         return jacobian;
     };
 
-    calibrations.state_dimension_ = 4u;
+    calibrations.state_dimension = 4u;
     calibrations.measurement_dimension = 2u;
-    calibrations.proccess_noise_covariance = 2.0f * static_cast<Eigen::MatrixXf>(Eigen::MatrixXf::Identity(4, 4));
-    
+    calibrations.proccess_noise_covariance = 0.1f * static_cast<Eigen::MatrixXf>(Eigen::MatrixXf::Identity(4, 4));
+
     /* Create filters */
     bf::BayesianFilter ekf_filter(bf_io::FilterType::EKF, calibrations);
     bf::BayesianFilter ukf_filter(bf_io::FilterType::UKF, calibrations);
@@ -106,7 +115,9 @@ int main(void) {
     std::vector<double> ekf_y(size);
     std::vector<double> ekf_vy(size);
     std::vector<double> ukf_x(size);
+    std::vector<double> ukf_vx(size);
     std::vector<double> ukf_y(size);
+    std::vector<double> ukf_vy(size);
     std::vector<double> timestamps(size);
     std::vector<double> meas_x(size);
     std::vector<double> meas_y(size);
@@ -139,14 +150,16 @@ int main(void) {
         ukf_filter.RunFilter(measurement);
         auto ukf_result = ukf_filter.GetEstimation();
         ukf_x.at(index) = ukf_result.state.at(0);
-        ukf_y.at(index) = ukf_result.state.at(1);
+        ukf_vx.at(index) = ukf_result.state.at(1);
+        ukf_y.at(index) = ukf_result.state.at(2);
+        ukf_vy.at(index) = ukf_result.state.at(3);
     }
 
     /* Plots */
     plt::figure();
     plt::plot(timestamps, ref_x, "m--", {{"label", "Reference"}});
     plt::plot(timestamps, ekf_x, "b", {{"label", "EKF"}});
-    //plt::plot(timestamps, ukf_x, "r", {{"label", "UKF"}});
+    plt::plot(timestamps, ukf_x, "r", {{"label", "UKF"}});
     plt::plot(timestamps, meas_x, "k+", {{"label", "Measurement"}});
     plt::title("x");
     plt::grid();
@@ -157,7 +170,7 @@ int main(void) {
 
     plt::figure();
     plt::plot(timestamps, ekf_vx, "b", {{"label", "EKF"}});
-    //plt::plot(timestamps, ukf_x, "r", {{"label", "UKF"}});
+    plt::plot(timestamps, ukf_vx, "r", {{"label", "UKF"}});
     plt::title("vx");
     plt::grid();
     plt::legend();
@@ -168,7 +181,7 @@ int main(void) {
     plt::figure();
     plt::plot(timestamps, ref_y, "m--", {{"label", "Reference"}});
     plt::plot(timestamps, ekf_y, "b", {{"label", "EKF"}});
-    //plt::plot(timestamps, ukf_y, "r", {{"label", "UKF"}});
+    plt::plot(timestamps, ukf_y, "r", {{"label", "UKF"}});
     plt::plot(timestamps, meas_y, "k+", {{"label", "Measurement"}});
     plt::title("y");
     plt::grid();
@@ -179,7 +192,7 @@ int main(void) {
 
     plt::figure();
     plt::plot(timestamps, ekf_vy, "b", {{"label", "EKF"}});
-    //plt::plot(timestamps, ukf_x, "r", {{"label", "UKF"}});
+    plt::plot(timestamps, ukf_vy, "r", {{"label", "UKF"}});
     plt::title("vy");
     plt::grid();
     plt::legend();

@@ -38,7 +38,7 @@ namespace bf
         Eigen::MatrixXf tmp = static_cast<Eigen::MatrixXf>(Eigen::MatrixXf::Identity(predicted_state.size(), predicted_state.size()) - kalman_gain * observation_jacobian);
 
         Eigen::MatrixXf estimated_covariance = static_cast<Eigen::MatrixXf>( static_cast<Eigen::MatrixXf>(tmp * predicted_covariance * tmp.transpose()))
-            + static_cast<Eigen::MatrixXf>(static_cast<Eigen::MatrixXf>(kalman_gain * R * kalman_gain.transpose())) ;
+            + static_cast<Eigen::MatrixXf>(static_cast<Eigen::MatrixXf>(kalman_gain * R * kalman_gain.transpose()));
 
         return std::make_tuple(estimated_state, estimated_covariance);
     }

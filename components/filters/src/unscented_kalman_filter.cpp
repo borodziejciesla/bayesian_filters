@@ -11,6 +11,7 @@
 
 #include <algorithm>
 #include <numeric>
+#include <iostream>
 
 #include <Eigen/Cholesky>
 
@@ -123,7 +124,7 @@ namespace bf
             static_cast<Eigen::MatrixXf>(Eigen::MatrixXf::Zero(measurement_dimension_, measurement_dimension_)),
             [this,predicted_measurement](Eigen::MatrixXf accumulated, const SigmaPointWithWeight & sigma_point) {
                 auto difference = static_cast<Eigen::VectorXf>(observation_(sigma_point.first) - predicted_measurement);
-                return static_cast<Eigen::VectorXf>(accumulated + sigma_point.second * (difference * difference.transpose()));
+                return static_cast<Eigen::MatrixXf>(accumulated + sigma_point.second * (difference * difference.transpose()));
             }
         ) + std::get<1>(measurement);
 
@@ -147,10 +148,16 @@ namespace bf
         auto kalman_gain = static_cast<Eigen::MatrixXf>(T * predicted_measurement.second.inverse());
 
         /* Calculate estimate */
-        auto estimated_state = static_cast<Eigen::VectorXf>(static_cast<Eigen::VectorXf>(predicted_state_) + static_cast<Eigen::VectorXf>(kalman_gain * static_cast<Eigen::VectorXf>(std::get<0>(measurement) - predicted_measurement.first)));
+        auto innovation = static_cast<Eigen::VectorXf>(std::get<0>(measurement) - predicted_measurement.first);
+        auto estimated_state = static_cast<Eigen::VectorXf>(static_cast<Eigen::VectorXf>(predicted_state_) + static_cast<Eigen::VectorXf>(kalman_gain * innovation));
         auto estimated_covariance = static_cast<Eigen::MatrixXf>(predicted_covariance_ - static_cast<Eigen::MatrixXf>(kalman_gain * predicted_measurement.second * kalman_gain.transpose()));
         //Eigen::MatrixXf tmp = static_cast<Eigen::MatrixXf>(Eigen::MatrixXf::Identity(estimated_state.size(), estimated_state.size())) - kalman_gain * T;
         //Eigen::MatrixXf estimated_covariance = tmp * predicted_covariance_;
+
+        std::cout << "\n =======================";
+        std::cout << "\n innovation: " << std::endl << innovation << std::endl;
+        std::cout << "\n predicted: " << std::endl << predicted_measurement.first << std::endl;
+        std::cout << "\n measurement: " << std::endl << std::get<0>(measurement) << std::endl;
 
         return std::make_tuple(estimated_state, estimated_covariance);
     }
