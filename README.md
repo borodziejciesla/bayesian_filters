@@ -6,8 +6,46 @@
 
 ***
 ## Overview
-C++ implementation of different types of Bayesian filters
+C++ implementation of different types of Bayesian filters:
+* Linear Kalman Filter
+* Extended Kalman Filter
+* Unscented Kalman Filter
 ***
+### How to build?
+* Simple build:
+
+```
+cmake -S . -B build
+cmake --build build
+```
+* Running static code analysis with *cppcheck*, report is located in *build/cppcheck_output_html/index.html*.:
+```
+cmake -S . -B build -DMAKE_CPPCHECK=ON
+cmake --build build
+cd build
+make cppcheck       # Runs static code analysis
+make cppcheck_html  # Creates HTML report
+```
+* Running code style analysis with *cpplint*:
+```
+cmake -S . -B build -DMAKE_CPPLINT=ON
+cmake --build build
+cd build
+make cpplint       # Runs code style analysis
+```
+* Running test coverage, report is located in *build/bayesian_filters_coverage_report/index.html*:
+```
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Coverage
+cmake --build build
+cd build
+make coverage       # Runs code style analysis
+```
+* Build with example (*build/examples/bayesian_filters_example*):
+```
+cmake -S . -B build -DBUILD_EXAMPLE=ON
+cmake --build build
+```
+
 ## Algorithms
 ---
 ### Kalman Filter

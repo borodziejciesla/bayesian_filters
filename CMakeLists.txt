@@ -26,7 +26,7 @@ endif()
 set(CMAKE_CXX_OUTPUT_EXTENSION_REPLACE ON)
 
 option(BUILD_TESTS "Build tests" ON)
-option(BUILD_EXAMPLE "Build example" ON)
+option(BUILD_EXAMPLE "Build example" OFF)
 option(MAKE_CPPCHECK "Make static code analysis" OFF)
 option(MAKE_CPPLINT "Make code style analysis" OFF)
 
