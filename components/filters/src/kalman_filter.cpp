@@ -9,7 +9,6 @@
 
 #include "kalman_filter.hpp"
 
-
 namespace bf
 {
     KalmanFilter::KalmanFilter(const bf_io::FilterCalibration & calibration)

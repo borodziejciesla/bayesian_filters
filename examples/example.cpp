@@ -10,6 +10,7 @@
 #include <iostream>
 #include <cmath>
 #include <random>
+#include <string>
 
 #include "matplotlibcpp.h"
 
@@ -17,7 +18,15 @@
 
 namespace plt = matplotlibcpp;
 
-int main(void) {
+int main(int argc, char *argv[]) {
+    if (argc != 2) {
+        std::cout << "Invalid Number of arguments!";
+        return EXIT_FAILURE;
+    }
+    
+    std::string argument(argv[1]);
+    const auto size = std::stoi(argument);
+
     bf_io::FilterCalibration calibrations;
 
     /*
@@ -93,7 +102,7 @@ int main(void) {
 
     calibrations.state_dimension = 4u;
     calibrations.measurement_dimension = 2u;
-    calibrations.proccess_noise_covariance = 0.1f * static_cast<Eigen::MatrixXf>(Eigen::MatrixXf::Identity(4, 4));
+    calibrations.proccess_noise_covariance = 1.0f * static_cast<Eigen::MatrixXf>(Eigen::MatrixXf::Identity(4, 4));
 
     /* Create filters */
     bf::BayesianFilter ekf_filter(bf_io::FilterType::EKF, calibrations);
@@ -103,10 +112,8 @@ int main(void) {
     bf_io::ValueWithTimestampAndCovariance measurement;
     measurement.timestamp = 0.0;
     measurement.state = {10.0f, 10.0f};
-    measurement.covariance.diagonal = {0.1f, 0.01f};
+    measurement.covariance.diagonal = {1.0f, 0.01f};
     measurement.covariance.lower_triangle = {0.0f};
-
-    constexpr size_t size = 1000u;
 
     std::vector<double> ref_x(size, 10.0f);
     std::vector<double> ref_y(size, 0.0f);
@@ -123,10 +130,10 @@ int main(void) {
     std::vector<double> meas_y(size);
 
     std::default_random_engine generator;
-    std::normal_distribution<float> distribution_range(0.0f, 0.1f);
+    std::normal_distribution<float> distribution_range(0.0f, 1.0f);
     std::normal_distribution<float> distribution_azimuth(0.0f, 0.01f);
 
-    for (auto index = 0u; index < size; index++)
+    for (auto index = 0; index < size; index++)
     {        
         measurement.timestamp += 0.01f;
         auto x = 10.0f;
@@ -160,7 +167,7 @@ int main(void) {
     plt::plot(timestamps, ref_x, "m--", {{"label", "Reference"}});
     plt::plot(timestamps, ekf_x, "b", {{"label", "EKF"}});
     plt::plot(timestamps, ukf_x, "r", {{"label", "UKF"}});
-    plt::plot(timestamps, meas_x, "k+", {{"label", "Measurement"}});
+    plt::plot(timestamps, meas_x, "k.", {{"label", "Measurement"}});
     plt::title("x");
     plt::grid();
     plt::legend();
@@ -182,7 +189,7 @@ int main(void) {
     plt::plot(timestamps, ref_y, "m--", {{"label", "Reference"}});
     plt::plot(timestamps, ekf_y, "b", {{"label", "EKF"}});
     plt::plot(timestamps, ukf_y, "r", {{"label", "UKF"}});
-    plt::plot(timestamps, meas_y, "k+", {{"label", "Measurement"}});
+    plt::plot(timestamps, meas_y, "k.", {{"label", "Measurement"}});
     plt::title("y");
     plt::grid();
     plt::legend();

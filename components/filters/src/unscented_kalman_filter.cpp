@@ -11,7 +11,6 @@
 
 #include <algorithm>
 #include <numeric>
-#include <iostream>
 
 #include <Eigen/Cholesky>
 
@@ -30,7 +29,7 @@ namespace bf
             [this](auto arg) {
                 std::ignore = arg;
                 return std::make_pair(Eigen::VectorXf::Zero(dimension_),
-                    lambda_ / (2.0f * (static_cast<float>(dimension_) + lambda_)) );
+                    (1.0f - sigma_points_.at(0).second) / (2.0f * static_cast<float>(dimension_)) );
             }
         );
     }
@@ -64,17 +63,17 @@ namespace bf
         sigma_points_.at(0).first = estimated_state_;
 
         /* Plus/Mius Sigma points */
+        auto idx = 0u;
         std::for_each(sigma_points_.begin() + 1u, sigma_points_.begin() + dimension_ + 1u,
-            [this,direction,idx=0](SigmaPointWithWeight & sigma_point) {
-                for (auto row = 0u; row < dimension_; row++)
-                    sigma_point.first(row) = estimated_state_(row) + direction(row, idx);
+            [this,direction,&idx](SigmaPointWithWeight & sigma_point) {
+                sigma_point.first = estimated_state_ + static_cast<Eigen::VectorXf>(direction.col(idx++));
             }
         );
 
+        idx = 0u;
         std::for_each(sigma_points_.begin() + dimension_ + 1u, sigma_points_.end(),
-            [this,direction,idx=0](SigmaPointWithWeight & sigma_point) {
-                for (auto row = 0u; row < dimension_; row++)
-                    sigma_point.first(row) = estimated_state_(row) - direction(row, idx);
+            [this,direction,&idx](SigmaPointWithWeight & sigma_point) {
+                sigma_point.first = estimated_state_ - static_cast<Eigen::VectorXf>(direction.col(idx++));
             }
         );
     }
@@ -151,13 +150,6 @@ namespace bf
         auto innovation = static_cast<Eigen::VectorXf>(std::get<0>(measurement) - predicted_measurement.first);
         auto estimated_state = static_cast<Eigen::VectorXf>(static_cast<Eigen::VectorXf>(predicted_state_) + static_cast<Eigen::VectorXf>(kalman_gain * innovation));
         auto estimated_covariance = static_cast<Eigen::MatrixXf>(predicted_covariance_ - static_cast<Eigen::MatrixXf>(kalman_gain * predicted_measurement.second * kalman_gain.transpose()));
-        //Eigen::MatrixXf tmp = static_cast<Eigen::MatrixXf>(Eigen::MatrixXf::Identity(estimated_state.size(), estimated_state.size())) - kalman_gain * T;
-        //Eigen::MatrixXf estimated_covariance = tmp * predicted_covariance_;
-
-        std::cout << "\n =======================";
-        std::cout << "\n innovation: " << std::endl << innovation << std::endl;
-        std::cout << "\n predicted: " << std::endl << predicted_measurement.first << std::endl;
-        std::cout << "\n measurement: " << std::endl << std::get<0>(measurement) << std::endl;
 
         return std::make_tuple(estimated_state, estimated_covariance);
     }
