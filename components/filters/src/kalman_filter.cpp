@@ -17,7 +17,7 @@ namespace bf
 
     KalmanFilter::StateWithCovariance KalmanFilter::Prediction(const float time_delta) {
         auto predicted_state = transition_(estimated_state_, time_delta);
-        auto jacobian = transition_jacobian_(estimated_state_);
+        auto jacobian = transition_jacobian_(estimated_state_, time_delta);
         auto predicted_covariance = jacobian * estimated_covariance_ * jacobian.transpose();
 
         return std::make_tuple(predicted_state, predicted_covariance);
@@ -33,10 +33,11 @@ namespace bf
         Eigen::MatrixXf innovation_covariance = observation_jacobian * predicted_covariance * observation_jacobian.transpose() + R;
         Eigen::MatrixXf kalman_gain = predicted_covariance * observation_jacobian.transpose() * innovation_covariance.inverse();
 
-        Eigen::MatrixXf estimated_state = predicted_state + kalman_gain * innovation;
-        Eigen::MatrixXf tmp = Eigen::MatrixXf::Identity(predicted_state.size(), predicted_state.size());
-        Eigen::MatrixXf estimated_covariance = tmp * predicted_covariance * tmp.transpose()
-            + kalman_gain * observation_jacobian * kalman_gain.transpose();
+        Eigen::MatrixXf estimated_state = static_cast<Eigen::MatrixXf>(predicted_state + kalman_gain * innovation);
+        Eigen::MatrixXf tmp = static_cast<Eigen::MatrixXf>(Eigen::MatrixXf::Identity(predicted_state.size(), predicted_state.size()) - kalman_gain * observation_jacobian);
+
+        Eigen::MatrixXf estimated_covariance = static_cast<Eigen::MatrixXf>( static_cast<Eigen::MatrixXf>(tmp * predicted_covariance * tmp.transpose()))
+            + static_cast<Eigen::MatrixXf>(static_cast<Eigen::MatrixXf>(kalman_gain * R * kalman_gain.transpose()));
 
         return std::make_tuple(estimated_state, estimated_covariance);
     }
