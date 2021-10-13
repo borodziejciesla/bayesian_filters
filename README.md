@@ -45,6 +45,10 @@ make coverage       # Runs code style analysis
 cmake -S . -B build -DBUILD_EXAMPLE=ON
 cmake --build build
 ```
+Run this example in following way:
+```
+bayesian_filters_example number_of_samples
+```
 
 ## Algorithms
 ---
@@ -420,6 +424,12 @@ int main(void) {
     return EXIT_SUCCESS;
 }
 ```
+
+It produces following results:
+![x](https://user-images.githubusercontent.com/44383270/137217945-2b8cd3cf-8a42-434e-b190-1be38a2bc66e.png)
+![vx](https://user-images.githubusercontent.com/44383270/137217961-df911b74-5202-4f96-88a3-6c904ea1de53.png)
+![y](https://user-images.githubusercontent.com/44383270/137217967-b13f77ff-8128-4d57-b463-d01fc31de0da.png)
+![vy](https://user-images.githubusercontent.com/44383270/137217982-43d13ee3-bff9-4151-bff7-961705f54416.png)
 
 ***
 ## Development environment
