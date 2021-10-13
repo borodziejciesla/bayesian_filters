@@ -3,4 +3,4 @@
 	url = https://gitlab.com/libeigen/eigen.git
 [submodule "examples/matplotlib_cpp"]
 	path = examples/matplotlib_cpp
-	url = https://github.com/Cryoris/matplotlib-cpp.git
+	url = https://github.com/borodziejciesla/matplotlib-cpp.git
