@@ -29,7 +29,7 @@ namespace bf
             [this](auto arg) {
                 std::ignore = arg;
                 return std::make_pair(Eigen::VectorXf::Zero(dimension_),
-                    lambda_ / (2.0f * (static_cast<float>(dimension_) + lambda_)) );
+                    (1.0f - sigma_points_.at(0).second) / (2.0f * static_cast<float>(dimension_)) );
             }
         );
     }
@@ -63,17 +63,17 @@ namespace bf
         sigma_points_.at(0).first = estimated_state_;
 
         /* Plus/Mius Sigma points */
+        auto idx = 0u;
         std::for_each(sigma_points_.begin() + 1u, sigma_points_.begin() + dimension_ + 1u,
-            [this,direction,idx=0](SigmaPointWithWeight & sigma_point) {
-                for (auto row = 0u; row < dimension_; row++)
-                    sigma_point.first(row) = estimated_state_(row) + direction(row, idx);
+            [this,direction,&idx](SigmaPointWithWeight & sigma_point) {
+                sigma_point.first = estimated_state_ + static_cast<Eigen::VectorXf>(direction.col(idx++));
             }
         );
 
+        idx = 0u;
         std::for_each(sigma_points_.begin() + dimension_ + 1u, sigma_points_.end(),
-            [this,direction,idx=0](SigmaPointWithWeight & sigma_point) {
-                for (auto row = 0u; row < dimension_; row++)
-                    sigma_point.first(row) = estimated_state_(row) - direction(row, idx);
+            [this,direction,&idx](SigmaPointWithWeight & sigma_point) {
+                sigma_point.first = estimated_state_ - static_cast<Eigen::VectorXf>(direction.col(idx++));
             }
         );
     }
@@ -123,7 +123,7 @@ namespace bf
             static_cast<Eigen::MatrixXf>(Eigen::MatrixXf::Zero(measurement_dimension_, measurement_dimension_)),
             [this,predicted_measurement](Eigen::MatrixXf accumulated, const SigmaPointWithWeight & sigma_point) {
                 auto difference = static_cast<Eigen::VectorXf>(observation_(sigma_point.first) - predicted_measurement);
-                return static_cast<Eigen::VectorXf>(accumulated + sigma_point.second * (difference * difference.transpose()));
+                return static_cast<Eigen::MatrixXf>(accumulated + sigma_point.second * (difference * difference.transpose()));
             }
         ) + std::get<1>(measurement);
 
@@ -139,16 +139,17 @@ namespace bf
                 auto diff_state = static_cast<Eigen::MatrixXf>(sigma_point.first - predicted_state_);
                 auto diff_measurement = static_cast<Eigen::MatrixXf>(observation_(sigma_point.first) - predicted_measurement.first);
                 auto cross_single = static_cast<Eigen::MatrixXf>(diff_state * diff_measurement.transpose());
-                return static_cast<Eigen::MatrixXf>(accumulated + cross_single);
+                return static_cast<Eigen::MatrixXf>(accumulated + sigma_point.second * cross_single);
             }
         );
         
         /* Kalman Gain */
-        auto kalman_gain = static_cast<Eigen::MatrixXf>(T * predicted_measurement.second.transpose());
+        auto kalman_gain = static_cast<Eigen::MatrixXf>(T * predicted_measurement.second.inverse());
 
         /* Calculate estimate */
-        auto estimated_state = static_cast<Eigen::VectorXf>(static_cast<Eigen::VectorXf>(predicted_state_) + static_cast<Eigen::VectorXf>(kalman_gain * static_cast<Eigen::VectorXf>(std::get<0>(measurement) - predicted_measurement.first)));
-        auto estimated_covariance = predicted_covariance_ - kalman_gain * predicted_measurement.second * kalman_gain.transpose();
+        auto innovation = static_cast<Eigen::VectorXf>(std::get<0>(measurement) - predicted_measurement.first);
+        auto estimated_state = static_cast<Eigen::VectorXf>(static_cast<Eigen::VectorXf>(predicted_state_) + static_cast<Eigen::VectorXf>(kalman_gain * innovation));
+        auto estimated_covariance = static_cast<Eigen::MatrixXf>(predicted_covariance_ - static_cast<Eigen::MatrixXf>(kalman_gain * predicted_measurement.second * kalman_gain.transpose()));
 
         return std::make_tuple(estimated_state, estimated_covariance);
     }

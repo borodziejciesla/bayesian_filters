@@ -52,6 +52,8 @@ namespace bf
             Eigen::VectorXf estimated_state_;
             Eigen::MatrixXf estimated_covariance_;
 
+            Eigen::MatrixXf process_noise_covariance_;
+
             std::function<Eigen::VectorXf(const Eigen::VectorXf & state, const float time_delta)> transition_;
             std::function<Eigen::MatrixXf(const Eigen::VectorXf & state, const float time_delta)> transition_jacobian_;
 

@@ -32,7 +32,7 @@ class BayesianFilterTests : public ::testing::TestWithParam<bf_io::FilterType>
                 return Eigen::MatrixXf::Ones(1, 1);
             };
 
-            calibrations_.state_dimension_ = 1u;
+            calibrations_.state_dimension = 1u;
             calibrations_.measurement_dimension = 1u;
             calibrations_.proccess_noise_covariance = Eigen::MatrixXf::Ones(1, 1);
         }
@@ -78,7 +78,7 @@ class BayesianFilterTests : public ::testing::TestWithParam<bf_io::FilterType>
                 return jacobian;
             };
 
-            calibrations_.state_dimension_ = 2u;
+            calibrations_.state_dimension = 2u;
             calibrations_.measurement_dimension = 1u;
             calibrations_.proccess_noise_covariance = Eigen::MatrixXf::Ones(2, 2);
         }

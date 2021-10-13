@@ -14,17 +14,16 @@
 namespace bf
 {
     CoreBayesianFilter::CoreBayesianFilter(const bf_io::FilterCalibration & calibration)
-        : transition_{calibration.transition}
+        : process_noise_covariance_{calibration.proccess_noise_covariance}
+        , transition_{calibration.transition}
         , transition_jacobian_{calibration.transition_jacobian}
         , observation_{calibration.observation}
         , observation_jacobian_{calibration.observation_jacobian} {
-        dimension_ = calibration.state_dimension_;
+        dimension_ = calibration.state_dimension;
         measurement_dimension_ = calibration.measurement_dimension;
 
-        estimated_state_ = Eigen::VectorXf::Zero(dimension_);
-        estimated_covariance_ = Eigen::MatrixXf::Zero(dimension_, dimension_);
-        for (auto index = 0u; index < dimension_; index++)
-            estimated_covariance_(index, index) = 1.0e2f;
+        estimated_state_ = Eigen::VectorXf::Random(dimension_);
+        estimated_covariance_ = 10.0f * Eigen::MatrixXf::Identity(dimension_, dimension_);
     }
 
     void CoreBayesianFilter::RunFilter(const bf_io::ValueWithTimestampAndCovariance & measurement) {
@@ -49,10 +48,7 @@ namespace bf
         Eigen::VectorXf measurementr_value;
         measurementr_value.resize(size);
         for (size_t idx = 0u; idx < size; idx++)
-        {
             measurementr_value(idx) = measurement.state.at(idx);
-            idx++;
-        }
 
         Eigen::MatrixXf covariance(size, size);
         for (size_t diag_idx = 0u; diag_idx < size; diag_idx++)
