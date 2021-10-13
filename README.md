@@ -426,6 +426,7 @@ int main(void) {
 ```
 
 It produces following results:
+
 ![x](https://user-images.githubusercontent.com/44383270/137217945-2b8cd3cf-8a42-434e-b190-1be38a2bc66e.png)
 ![vx](https://user-images.githubusercontent.com/44383270/137217961-df911b74-5202-4f96-88a3-6c904ea1de53.png)
 ![y](https://user-images.githubusercontent.com/44383270/137217967-b13f77ff-8128-4d57-b463-d01fc31de0da.png)
