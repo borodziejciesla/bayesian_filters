@@ -4,6 +4,7 @@ add_library(filters OBJECT
     src/core_bayesian_filter.cpp
     src/kalman_filter.cpp
     src/extended_kalman_filter.cpp
+    src/particle_filter.cpp
     src/unscented_kalman_filter.cpp
 )
 

@@ -102,7 +102,7 @@ int main(int argc, char *argv[]) {
 
     calibrations.state_dimension = 4u;
     calibrations.measurement_dimension = 2u;
-    calibrations.proccess_noise_covariance = 1.0f * static_cast<Eigen::MatrixXf>(Eigen::MatrixXf::Identity(4, 4));
+    calibrations.proccess_noise_covariance = 10.0f * static_cast<Eigen::MatrixXf>(Eigen::MatrixXf::Identity(4, 4));
 
     /* Create filters */
     bf::BayesianFilter ekf_filter(bf_io::FilterType::EKF, calibrations);
@@ -116,7 +116,7 @@ int main(int argc, char *argv[]) {
     measurement.covariance.lower_triangle = {0.0f};
 
     std::vector<double> ref_x(size, 10.0f);
-    std::vector<double> ref_y(size, 0.0f);
+    std::vector<double> ref_y(size, 10.0f);
     std::vector<double> ekf_x(size);
     std::vector<double> ekf_vx(size);
     std::vector<double> ekf_y(size);
@@ -133,11 +133,16 @@ int main(int argc, char *argv[]) {
     std::normal_distribution<float> distribution_range(0.0f, 1.0f);
     std::normal_distribution<float> distribution_azimuth(0.0f, 0.01f);
 
+    for (auto index = 0; index < size; index++) {
+        ref_x.at(index) = 15.0f * std::cos(static_cast<float>(index) * 0.01f);
+        ref_y.at(index) = 15.0f * std::sin(static_cast<float>(index) * 0.01f);
+    }
+
     for (auto index = 0; index < size; index++)
     {        
         measurement.timestamp += 0.01f;
-        auto x = 10.0f;
-        auto y = 10.0f;
+        auto x = ref_x.at(index);
+        auto y = ref_y.at(index);
         measurement.state.at(0) = std::sqrt(std::pow(x, 2) + std::pow(y, 2)) + distribution_range(generator);
         measurement.state.at(1) = std::atan2(y, x) + distribution_azimuth(generator);
 
