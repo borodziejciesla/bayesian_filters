@@ -10,6 +10,7 @@
 #ifndef COMPONENTS_FILTERS_INCLUDE_PARTICLE_FILTER_HPP_
 #define COMPONENTS_FILTERS_INCLUDE_PARTICLE_FILTER_HPP_
 
+#include <memory>
 #include <random>
 #include <vector>
 
@@ -48,6 +49,8 @@ namespace bf
             std::vector<float> c_;
 
             std::default_random_engine generator_;
+            std::unique_ptr<std::uniform_real_distribution<float>> uniform_distribution_;
+            std::unique_ptr<std::normal_distribution<float>> normal_distribution_;
     };
 }   // namespace bf
 

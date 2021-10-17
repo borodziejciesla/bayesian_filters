@@ -16,8 +16,9 @@ namespace bf_io
     {
         KF = 0u,
         EKF = 1u,
-        UKF = 2,
-        NONE = 3u
+        UKF = 2u,
+        PF = 3u,
+        NONE = 4u
     };
 }   // namespace bf_io
 

@@ -13,6 +13,7 @@
 
 #include "extended_kalman_filter.hpp"
 #include "kalman_filter.hpp"
+#include "particle_filter.hpp"
 #include "unscented_kalman_filter.hpp"
 
 namespace bf
@@ -26,6 +27,8 @@ namespace bf
                 return std::make_unique<ExtendedKalmanFilter>(calibration);
             case bf_io::FilterType::UKF:
                 return std::make_unique<UnscentedKalmanFilter>(calibration);
+            case bf_io::FilterType::PF:
+                return std::make_unique<ParticleFilter>(calibration);
             case bf_io::FilterType::NONE:
             default:
                 throw std::invalid_argument("BayesianFilterFactory::CreateFilter - Invalid filter type!");

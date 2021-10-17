@@ -152,6 +152,10 @@ INSTANTIATE_TEST_CASE_P(
     BayesianFilterTestsSet,
     BayesianFilterTests,
     ::testing::Values(
-        bf_io::FilterType::KF, bf_io::FilterType::EKF, bf_io::FilterType::UKF, bf_io::FilterType::NONE
+        bf_io::FilterType::KF,
+        bf_io::FilterType::EKF,
+        bf_io::FilterType::UKF,
+        bf_io::FilterType::PF,
+        bf_io::FilterType::NONE
     )
 );
