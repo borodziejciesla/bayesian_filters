@@ -16,7 +16,7 @@ namespace bf_io
 {
     struct ValueWithTimestampAndCovariance
     {
-        double timestamp;
+        float timestamp;
         
         std::vector<float> state;
         Covariance covariance;

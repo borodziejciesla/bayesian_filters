@@ -65,7 +65,7 @@ namespace bf
             std::vector<float> ConvertVectorxToState(const Eigen::VectorXf & state) const;
             bf_io::Covariance ConvertMatrixToCovariance(const Eigen::MatrixXf & covariance) const;
 
-            double previous_timestamp_ = 0.0;
+            float previous_timestamp_ = 0.0f;
     };
 }   // namespace bf
 

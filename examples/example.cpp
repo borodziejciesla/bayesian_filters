@@ -23,7 +23,7 @@ int main(int argc, char *argv[]) {
         std::cout << "Invalid Number of arguments!";
         return EXIT_FAILURE;
     }
-    
+
     std::string argument(argv[1]);
     const auto size = std::stoi(argument);
 
@@ -81,7 +81,7 @@ int main(int argc, char *argv[]) {
     calibrations.observation_jacobian = [](const Eigen::VectorXf & state) {
         auto x = state(0);
         auto y = state(2);
-        
+
         Eigen::MatrixXf jacobian = Eigen::MatrixXf::Zero(2u, 4u);
         if ((std::abs(x) < 1e-5f) && (std::abs(y) < 1e-5f)) {
             jacobian(0, 0) = 1.0f;
@@ -89,7 +89,7 @@ int main(int argc, char *argv[]) {
             jacobian(1, 2) = 1.0f;
             jacobian(1, 3) = 1.0f;
         } else {
-            auto range_sqr = std::pow(x, 2) + std::pow(y, 2);
+            auto range_sqr = std::pow(x, 2.0f) + std::pow(y, 2.0f);
             auto range = std::sqrt(range_sqr);
             jacobian(0, 0) = x / range;
             jacobian(0, 2) = y / range;
@@ -102,17 +102,22 @@ int main(int argc, char *argv[]) {
 
     calibrations.state_dimension = 4u;
     calibrations.measurement_dimension = 2u;
-    calibrations.proccess_noise_covariance = 10.0f * static_cast<Eigen::MatrixXf>(Eigen::MatrixXf::Identity(4, 4));
+    calibrations.proccess_noise_covariance = static_cast<Eigen::MatrixXf>(Eigen::MatrixXf::Identity(4, 4));
+    calibrations.proccess_noise_covariance(0, 0) = 10.0f;
+    calibrations.proccess_noise_covariance(1, 1) = 1.0f;
+    calibrations.proccess_noise_covariance(2, 2) = 10.0f;
+    calibrations.proccess_noise_covariance(3, 3) = 1.0f;
 
     /* Create filters */
     bf::BayesianFilter ekf_filter(bf_io::FilterType::EKF, calibrations);
     bf::BayesianFilter ukf_filter(bf_io::FilterType::UKF, calibrations);
+    bf::BayesianFilter pf_filter(bf_io::FilterType::PF, calibrations);
 
     /* Run filters */
     bf_io::ValueWithTimestampAndCovariance measurement;
     measurement.timestamp = 0.0;
     measurement.state = {10.0f, 10.0f};
-    measurement.covariance.diagonal = {1.0f, 0.01f};
+    measurement.covariance.diagonal = {1.5f, 0.5f};
     measurement.covariance.lower_triangle = {0.0f};
 
     std::vector<double> ref_x(size, 10.0f);
@@ -125,31 +130,30 @@ int main(int argc, char *argv[]) {
     std::vector<double> ukf_vx(size);
     std::vector<double> ukf_y(size);
     std::vector<double> ukf_vy(size);
+    std::vector<double> pf_x(size);
+    std::vector<double> pf_vx(size);
+    std::vector<double> pf_y(size);
+    std::vector<double> pf_vy(size);
     std::vector<double> timestamps(size);
     std::vector<double> meas_x(size);
     std::vector<double> meas_y(size);
 
     std::default_random_engine generator;
-    std::normal_distribution<float> distribution_range(0.0f, 1.0f);
-    std::normal_distribution<float> distribution_azimuth(0.0f, 0.01f);
-
-    for (auto index = 0; index < size; index++) {
-        ref_x.at(index) = 15.0f * std::cos(static_cast<float>(index) * 0.01f);
-        ref_y.at(index) = 15.0f * std::sin(static_cast<float>(index) * 0.01f);
-    }
+    std::normal_distribution<float> distribution_range(0.0f, 1.5f);
+    std::normal_distribution<float> distribution_azimuth(0.0f, 0.5f);
 
     for (auto index = 0; index < size; index++)
-    {        
+    {
         measurement.timestamp += 0.01f;
-        auto x = ref_x.at(index);
-        auto y = ref_y.at(index);
-        measurement.state.at(0) = std::sqrt(std::pow(x, 2) + std::pow(y, 2)) + distribution_range(generator);
+        auto x = static_cast<float>(ref_x.at(index));
+        auto y = static_cast<float>(ref_y.at(index));
+        measurement.state.at(0) = std::sqrt(std::pow(x, 2.0f) + std::pow(y, 2.0f)) + distribution_range(generator);
         measurement.state.at(1) = std::atan2(y, x) + distribution_azimuth(generator);
 
         timestamps.at(index) = measurement.timestamp;
         meas_x.at(index) = measurement.state.at(0) * std::cos(measurement.state.at(1));
         meas_y.at(index) = measurement.state.at(0) * std::sin(measurement.state.at(1));
-        
+
         // EKF
         ekf_filter.RunFilter(measurement);
         auto ekf_result = ekf_filter.GetEstimation();
@@ -165,6 +169,14 @@ int main(int argc, char *argv[]) {
         ukf_vx.at(index) = ukf_result.state.at(1);
         ukf_y.at(index) = ukf_result.state.at(2);
         ukf_vy.at(index) = ukf_result.state.at(3);
+
+        // PF
+        pf_filter.RunFilter(measurement);
+        auto pf_result = pf_filter.GetEstimation();
+        pf_x.at(index) = pf_result.state.at(0);
+        pf_vx.at(index) = pf_result.state.at(1);
+        pf_y.at(index) = pf_result.state.at(2);
+        pf_vy.at(index) = pf_result.state.at(3);
     }
 
     /* Plots */
@@ -172,6 +184,7 @@ int main(int argc, char *argv[]) {
     plt::plot(timestamps, ref_x, "m--", {{"label", "Reference"}});
     plt::plot(timestamps, ekf_x, "b", {{"label", "EKF"}});
     plt::plot(timestamps, ukf_x, "r", {{"label", "UKF"}});
+    plt::plot(timestamps, pf_x, "g", {{"label", "PF"}});
     plt::plot(timestamps, meas_x, "k.", {{"label", "Measurement"}});
     plt::title("x");
     plt::grid();
@@ -183,17 +196,19 @@ int main(int argc, char *argv[]) {
     plt::figure();
     plt::plot(timestamps, ekf_vx, "b", {{"label", "EKF"}});
     plt::plot(timestamps, ukf_vx, "r", {{"label", "UKF"}});
+    plt::plot(timestamps, pf_vx, "g", {{"label", "PF"}});
     plt::title("vx");
     plt::grid();
     plt::legend();
     plt::xlabel("Time [s]");
     plt::ylabel("vx [m/s]");
     plt::show();
-    
+
     plt::figure();
     plt::plot(timestamps, ref_y, "m--", {{"label", "Reference"}});
     plt::plot(timestamps, ekf_y, "b", {{"label", "EKF"}});
     plt::plot(timestamps, ukf_y, "r", {{"label", "UKF"}});
+    plt::plot(timestamps, pf_y, "g", {{"label", "PF"}});
     plt::plot(timestamps, meas_y, "k.", {{"label", "Measurement"}});
     plt::title("y");
     plt::grid();
@@ -205,11 +220,25 @@ int main(int argc, char *argv[]) {
     plt::figure();
     plt::plot(timestamps, ekf_vy, "b", {{"label", "EKF"}});
     plt::plot(timestamps, ukf_vy, "r", {{"label", "UKF"}});
+    plt::plot(timestamps, pf_vy, "g", {{"label", "PF"}});
     plt::title("vy");
     plt::grid();
     plt::legend();
     plt::xlabel("Time [s]");
     plt::ylabel("vy [m/s]");
+    plt::show();
+
+    plt::figure();
+    plt::plot(meas_x, meas_y, "k.", {{"label", "Measurement"}});
+    plt::plot(ekf_x, ekf_y, "b", {{"label", "EKF"}});
+    plt::plot(ukf_x, ukf_y, "r", {{"label", "UKF"}});
+    plt::plot(pf_x, pf_y, "g", {{"label", "PF"}});
+    plt::plot(ref_x, ref_y, "m--", {{"label", "Reference"}});
+    plt::title("Trajectory");
+    plt::grid();
+    plt::legend();
+    plt::xlabel("x [m]");
+    plt::ylabel("y [m]");
     plt::show();
 
     return EXIT_SUCCESS;

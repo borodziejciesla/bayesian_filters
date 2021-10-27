@@ -37,7 +37,7 @@ namespace bf
                 const Eigen::MatrixXf & predicted_covariance);
         
         private:
-            void SetWeightsBasedOnMeasurement(void);    // TODO: add measurement to output
+            void SetWeightsBasedOnMeasurement(const bf_io::ValueWithTimestampAndCovariance & measurement);
             void NormalizeWeight(void);
             void Resampling(void);
             StateWithCovariance MakeStateAndCovarianceEstimation(void);
@@ -45,6 +45,7 @@ namespace bf
             using WeightedSample = std::pair<float, Eigen::VectorXf>;
 
             size_t samples_number_ = 0u;
+            float weights_sum_ = 0.0f;
             std::vector<WeightedSample> distribution_weighted_points_;
             std::vector<float> c_;
 

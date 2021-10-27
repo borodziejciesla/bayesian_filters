@@ -103,7 +103,7 @@ namespace bf
                 auto difference = sigma_point.first - predicted_state_;
                 return accumulated + sigma_point.second * (difference * difference.transpose());
             }
-        );
+        ) + process_noise_covariance_;
     }
 
     UnscentedKalmanFilter::ValueAndCovariance UnscentedKalmanFilter::PredictMeasurement(const StateWithCovariance & measurement) {
