@@ -27,8 +27,8 @@ namespace bf
             explicit KalmanFilter(const bf_io::FilterCalibration & calibration);
 
         protected:
-            void Prediction(const float time_delta);
-            void Correction(const bf_io::ValueWithTimestampAndCovariance & measurement);
+            void Prediction(const float time_delta) override;
+            void Correction(const bf_io::ValueWithTimestampAndCovariance & measurement) override;
     };
 }   // namespace bf
 
