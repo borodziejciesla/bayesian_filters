@@ -10,10 +10,16 @@ class BayesianFilterTests : public ::testing::TestWithParam<bf_io::FilterType>
         bf_io::FilterCalibration calibrations_;
 
         void CreateSimpleModel(void) {
-            calibrations_.transition = [](const Eigen::VectorXf & state, const float time_delta) {
+            calibrations_.transition = [](const Eigen::VectorXf & state,
+                const std::optional<Eigen::VectorXf> & noise,
+                const float time_delta) {
                 std::ignore = state;
                 std::ignore = time_delta;
-                return Eigen::VectorXf::Zero(1);
+
+                if (noise.has_value())
+                    return Eigen::VectorXf::Zero(1);
+                else
+                    return Eigen::VectorXf::Zero(1);
             };
 
             calibrations_.transition_jacobian = [](const Eigen::VectorXf & state, const float time_delta) {
@@ -43,10 +49,16 @@ class BayesianFilterTests : public ::testing::TestWithParam<bf_io::FilterType>
              * x(k+1) = [x_1 + T * x_2; cos(x_2)]
              * y(k) = x_1
              */
-            calibrations_.transition = [](const Eigen::VectorXf & state, const float time_delta) {
+            calibrations_.transition = [](const Eigen::VectorXf & state,
+                const std::optional<Eigen::VectorXf> & noise,
+                const float time_delta) {
                 Eigen::VectorXf transformed_state(2);
                 transformed_state(0) = state(0) + time_delta * state(1);
                 transformed_state(1) = std::cos(state(1));
+
+                if (noise.has_value()) {
+                    transformed_state += noise.value();
+                }
 
                 return transformed_state;
             };

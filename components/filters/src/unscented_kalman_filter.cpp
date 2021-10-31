@@ -75,7 +75,7 @@ namespace bf
         std::transform(sigma_points_.begin(), sigma_points_.end(),
             sigma_points_.begin(),
             [=,this](SigmaPointWithWeight & sigma_point) {
-                return std::make_pair(transition_(sigma_point.first, time_delta), sigma_point.second);
+                return std::make_pair(transition_(sigma_point.first, std::nullopt, time_delta), sigma_point.second);
             }
         );
     }

@@ -22,29 +22,26 @@ namespace bf
         , samples_number_{dimension_ * 20u}
         , distribution_weighted_points_{std::vector<WeightedSample>(samples_number_)}
         , c_(std::vector<float>(samples_number_))
-        , uniform_distribution_{std::make_unique<std::uniform_real_distribution<float>>(0.0f, 1.0f / static_cast<float>(samples_number_))} 
-        , normal_distribution_{std::make_unique<std::normal_distribution<float>>(0.0f, 10.0f)} {
+        , uniform_distribution_{std::make_unique<std::uniform_real_distribution<float>>(0.0f, 1.0f / static_cast<float>(samples_number_))} {
         std::for_each(distribution_weighted_points_.begin(), distribution_weighted_points_.end(),
             [this](WeightedSample & weighted_sample) {
                 weighted_sample.first = 1.0f / static_cast<float>(samples_number_);
                 weighted_sample.second = 50.0f * Eigen::VectorXf::Random(dimension_);
             }
         );
+
+        for (auto index = 0u; index < dimension_; index++)
+            normal_distribution_.push_back(std::make_unique<std::normal_distribution<float>>(0.0f, process_noise_covariance_(index, index)));
     }
 
     void ParticleFilter::Prediction(const float time_delta) {
         std::for_each(distribution_weighted_points_.begin(), distribution_weighted_points_.end(),
             [time_delta,this](WeightedSample & weighted_sample) {
-                auto noise = static_cast<Eigen::VectorXf>(Eigen::VectorXf::Zero(dimension_));
+                Eigen::VectorXf noise = Eigen::VectorXf::Zero(dimension_);
                 for (auto index = 0u; index < dimension_; index++)
-                    noise(index) = (*normal_distribution_)(generator_);
-
-                noise(0) = 0.5f * std::pow(time_delta, 2.0f) * (*normal_distribution_)(generator_);
-                //noise(1) = time_delta * (*normal_distribution_)(generator_);
-                //noise(2) = 0.5f * std::pow(time_delta, 2.0f) * (*normal_distribution_)(generator_);
-                //noise(3) = time_delta * (*normal_distribution_)(generator_);
-
-                weighted_sample.second = transition_(weighted_sample.second, time_delta) + noise; // Add noise calibrated
+                    noise(index) = (*normal_distribution_.at(index))(generator_);
+                
+                weighted_sample.second = transition_(weighted_sample.second, noise, time_delta);
             }
         );
     }

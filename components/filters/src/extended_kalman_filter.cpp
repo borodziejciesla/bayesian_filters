@@ -16,7 +16,7 @@ namespace bf
     }
 
     void ExtendedKalmanFilter::Prediction(const float time_delta) {
-        predicted_state_ = transition_(estimated_state_, time_delta);
+        predicted_state_ = transition_(estimated_state_, std::nullopt, time_delta);
         auto jacobian = transition_jacobian_(estimated_state_, time_delta);
 
         predicted_covariance_ = jacobian * estimated_covariance_ * jacobian.transpose() + process_noise_covariance_;

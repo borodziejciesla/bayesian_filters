@@ -34,7 +34,9 @@ int main(int argc, char *argv[]) {
      * X(k+1) = [x + T * vx; vx; y + T * vy; vy]
      * Y(k) = [sqrt(x^2 + y^2); arctan(y/x)]
      */
-    calibrations.transition = [](const Eigen::VectorXf & state, const float time_delta) {
+    calibrations.transition = [](const Eigen::VectorXf & state,
+        const std::optional<Eigen::VectorXf> & noise,
+        const float time_delta) {
         auto x = state(0);
         auto vx = state(1);
         auto y = state(2);
@@ -50,6 +52,14 @@ int main(int argc, char *argv[]) {
         transformed_state(1) = predicted_vx;
         transformed_state(2) = predicted_y;
         transformed_state(3) = predicted_vy;
+
+        if (noise.has_value()) {
+            auto noise_value = noise.value();
+            transformed_state(0) += time_delta * noise_value(0) + std::pow(time_delta, 2.0f) * noise_value(1);
+            transformed_state(1) += time_delta * noise_value(1);
+            transformed_state(2) += time_delta * noise_value(2) + std::pow(time_delta, 2.0f) * noise_value(3);
+            transformed_state(3) += time_delta * noise_value(3);
+        }
 
         return transformed_state;
     };

@@ -49,7 +49,7 @@ namespace bf
 
             std::default_random_engine generator_;
             std::unique_ptr<std::uniform_real_distribution<float>> uniform_distribution_;
-            std::unique_ptr<std::normal_distribution<float>> normal_distribution_;
+            std::vector<std::unique_ptr<std::normal_distribution<float>>> normal_distribution_;
     };
 }   // namespace bf
 
