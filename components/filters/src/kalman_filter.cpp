@@ -15,30 +15,25 @@ namespace bf
         : CoreBayesianFilter(calibration) {
     }
 
-    KalmanFilter::StateWithCovariance KalmanFilter::Prediction(const float time_delta) {
-        auto predicted_state = transition_(estimated_state_, time_delta);
+    void KalmanFilter::Prediction(const float time_delta) {
+        predicted_state_ = transition_(estimated_state_, time_delta);
         auto jacobian = transition_jacobian_(estimated_state_, time_delta);
-        auto predicted_covariance = jacobian * estimated_covariance_ * jacobian.transpose();
-
-        return std::make_tuple(predicted_state, predicted_covariance);
+        predicted_covariance_ = jacobian * estimated_covariance_ * jacobian.transpose();
     }
 
-    KalmanFilter::StateWithCovariance KalmanFilter::Correction(const bf_io::ValueWithTimestampAndCovariance & measurement,
-        const Eigen::VectorXf & predicted_state,
-        const Eigen::MatrixXf & predicted_covariance) {
+    void KalmanFilter::Correction(const bf_io::ValueWithTimestampAndCovariance & measurement) {
         auto [y, R] = ConvertMeasurement(measurement);
-        Eigen::MatrixXf observation_jacobian = observation_jacobian_(predicted_state);
+        Eigen::MatrixXf observation_jacobian = observation_jacobian_(predicted_state_);
 
-        Eigen::MatrixXf innovation = y - observation_(predicted_state);
-        Eigen::MatrixXf innovation_covariance = observation_jacobian * predicted_covariance * observation_jacobian.transpose() + R;
-        Eigen::MatrixXf kalman_gain = predicted_covariance * observation_jacobian.transpose() * innovation_covariance.inverse();
+        Eigen::MatrixXf predicted_observation = observation_(predicted_state_);
+        Eigen::MatrixXf innovation = y - predicted_observation;
+        Eigen::MatrixXf innovation_covariance = observation_jacobian * predicted_covariance_ * observation_jacobian.transpose() + R;
+        Eigen::MatrixXf kalman_gain = predicted_covariance_ * observation_jacobian.transpose() * innovation_covariance.inverse();
 
-        Eigen::MatrixXf estimated_state = static_cast<Eigen::MatrixXf>(predicted_state + kalman_gain * innovation);
-        Eigen::MatrixXf tmp = static_cast<Eigen::MatrixXf>(Eigen::MatrixXf::Identity(predicted_state.size(), predicted_state.size()) - kalman_gain * observation_jacobian);
+        estimated_state_ = static_cast<Eigen::MatrixXf>(predicted_state_ + kalman_gain * innovation);
+        Eigen::MatrixXf tmp = static_cast<Eigen::MatrixXf>(Eigen::MatrixXf::Identity(predicted_state_.size(), predicted_state_.size()) - kalman_gain * observation_jacobian);
 
-        Eigen::MatrixXf estimated_covariance = static_cast<Eigen::MatrixXf>( static_cast<Eigen::MatrixXf>(tmp * predicted_covariance * tmp.transpose()))
+        estimated_covariance_ = static_cast<Eigen::MatrixXf>( static_cast<Eigen::MatrixXf>(tmp * predicted_covariance_ * tmp.transpose()))
             + static_cast<Eigen::MatrixXf>(static_cast<Eigen::MatrixXf>(kalman_gain * R * kalman_gain.transpose()));
-
-        return std::make_tuple(estimated_state, estimated_covariance);
     }
 }   // namespace bf

@@ -37,10 +37,8 @@ namespace bf
         protected:
             using StateWithCovariance = std::tuple<Eigen::VectorXf, Eigen::MatrixXf>;
 
-            virtual StateWithCovariance Prediction(const float time_delta) = 0;
-            virtual StateWithCovariance Correction(const bf_io::ValueWithTimestampAndCovariance & measurement,
-                const Eigen::VectorXf & predicted_state,
-                const Eigen::MatrixXf & predicted_covariance) = 0;
+            virtual void Prediction(const float time_delta) = 0;
+            virtual void Correction(const bf_io::ValueWithTimestampAndCovariance & measurement) = 0;
 
             StateWithCovariance ConvertMeasurement(const bf_io::ValueWithTimestampAndCovariance & measurement) const;
 
@@ -52,6 +50,9 @@ namespace bf
             Eigen::VectorXf estimated_state_;
             Eigen::MatrixXf estimated_covariance_;
 
+            Eigen::VectorXf predicted_state_;
+            Eigen::MatrixXf predicted_covariance_;
+
             Eigen::MatrixXf process_noise_covariance_;
 
             std::function<Eigen::VectorXf(const Eigen::VectorXf & state, const float time_delta)> transition_;
@@ -61,9 +62,9 @@ namespace bf
             std::function<Eigen::MatrixXf(const Eigen::VectorXf & state)> observation_jacobian_;
 
         private:
-            void ConvertEstimateToOutput(const Eigen::VectorXf & state, const Eigen::MatrixXf & covariance);
-            std::vector<float> ConvertVectorxToState(const Eigen::VectorXf & state) const;
-            bf_io::Covariance ConvertMatrixToCovariance(const Eigen::MatrixXf & covariance) const;
+            void ConvertEstimateToOutput(void);
+            std::vector<float> ConvertVectorxToState(void) const;
+            bf_io::Covariance ConvertMatrixToCovariance(void) const;
 
             float previous_timestamp_ = 0.0f;
     };

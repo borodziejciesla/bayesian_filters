@@ -32,7 +32,7 @@ namespace bf
         );
     }
 
-    ParticleFilter::StateWithCovariance ParticleFilter::Prediction(const float time_delta) {
+    void ParticleFilter::Prediction(const float time_delta) {
         std::for_each(distribution_weighted_points_.begin(), distribution_weighted_points_.end(),
             [time_delta,this](WeightedSample & weighted_sample) {
                 auto noise = static_cast<Eigen::VectorXf>(Eigen::VectorXf::Zero(dimension_));
@@ -40,28 +40,20 @@ namespace bf
                     noise(index) = (*normal_distribution_)(generator_);
 
                 noise(0) = 0.5f * std::pow(time_delta, 2.0f) * (*normal_distribution_)(generator_);
-                noise(1) = time_delta * (*normal_distribution_)(generator_);
-                noise(2) = 0.5f * std::pow(time_delta, 2.0f) * (*normal_distribution_)(generator_);
-                noise(3) = time_delta * (*normal_distribution_)(generator_);
+                //noise(1) = time_delta * (*normal_distribution_)(generator_);
+                //noise(2) = 0.5f * std::pow(time_delta, 2.0f) * (*normal_distribution_)(generator_);
+                //noise(3) = time_delta * (*normal_distribution_)(generator_);
 
                 weighted_sample.second = transition_(weighted_sample.second, time_delta) + noise; // Add noise calibrated
             }
         );
-
-        return ParticleFilter::StateWithCovariance();
     }
 
-    ParticleFilter::StateWithCovariance ParticleFilter::Correction(const bf_io::ValueWithTimestampAndCovariance & measurement,
-        const Eigen::VectorXf & predicted_state,
-        const Eigen::MatrixXf & predicted_covariance) {
-        std::ignore = predicted_state;
-        std::ignore = predicted_covariance;
+    void ParticleFilter::Correction(const bf_io::ValueWithTimestampAndCovariance & measurement) {
         SetWeightsBasedOnMeasurement(measurement);
         NormalizeWeight();
-        auto estimation = MakeStateAndCovarianceEstimation();
+        MakeStateAndCovarianceEstimation();
         Resampling();
-        
-        return estimation;
     }
 
     void ParticleFilter::SetWeightsBasedOnMeasurement(const bf_io::ValueWithTimestampAndCovariance & measurement) {
@@ -112,9 +104,9 @@ namespace bf
         }
     }
 
-    ParticleFilter::StateWithCovariance ParticleFilter::MakeStateAndCovarianceEstimation(void) {
+    void ParticleFilter::MakeStateAndCovarianceEstimation(void) {
         /* Find mean value */
-        auto mean_value = std::accumulate(distribution_weighted_points_.begin(), distribution_weighted_points_.end(),
+        estimated_state_ = std::accumulate(distribution_weighted_points_.begin(), distribution_weighted_points_.end(),
             static_cast<Eigen::VectorXf>(Eigen::VectorXf::Zero(dimension_)),
             [this](Eigen::VectorXf accumulated_mean, WeightedSample sample_point) {
                 return accumulated_mean + sample_point.second * sample_point.first;
@@ -122,14 +114,12 @@ namespace bf
         );
 
         /* Estimate covariance */
-        auto covariance_of_mean_value = std::accumulate(distribution_weighted_points_.begin(), distribution_weighted_points_.end(),
+        estimated_covariance_ = std::accumulate(distribution_weighted_points_.begin(), distribution_weighted_points_.end(),
             static_cast<Eigen::MatrixXf>(Eigen::MatrixXf::Zero(dimension_, dimension_)),
-            [mean_value,this](Eigen::MatrixXf accumulated_covariance, WeightedSample sample_point) {
-                auto difference = sample_point.second - mean_value;
+            [this](Eigen::MatrixXf accumulated_covariance, WeightedSample sample_point) {
+                auto difference = sample_point.second - estimated_state_;
                 return accumulated_covariance + (sample_point.first * difference * difference.transpose());
             }
         );
-
-        return std::tuple<Eigen::VectorXf, Eigen::MatrixXf>(mean_value, covariance_of_mean_value);
     }
 }

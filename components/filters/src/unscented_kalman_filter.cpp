@@ -34,24 +34,17 @@ namespace bf
         );
     }
 
-    CoreBayesianFilter::StateWithCovariance UnscentedKalmanFilter::Prediction(const float time_delta) {
+    void UnscentedKalmanFilter::Prediction(const float time_delta) {
         FindSigmaPoints();
         PredictSigmaPoints(time_delta);
         PredictMeanAndCovariance();
-
-        return std::make_tuple(predicted_state_, predicted_covariance_);
     }
 
-    CoreBayesianFilter::StateWithCovariance UnscentedKalmanFilter::Correction(const bf_io::ValueWithTimestampAndCovariance & measurement,
-        const Eigen::VectorXf & predicted_state,
-        const Eigen::MatrixXf & predicted_covariance) {
-        std::ignore = predicted_state;
-        std::ignore = predicted_covariance;
-
+    void UnscentedKalmanFilter::Correction(const bf_io::ValueWithTimestampAndCovariance & measurement) {
         auto converted_measurement = ConvertMeasurement(measurement);
 
         auto predicted_measurement = PredictMeasurement(converted_measurement);
-        return UpdateState(predicted_measurement, converted_measurement);
+        UpdateState(predicted_measurement, converted_measurement);
     }
 
     void UnscentedKalmanFilter::FindSigmaPoints(void)
@@ -130,8 +123,7 @@ namespace bf
         return std::make_pair(predicted_measurement, predicted_covariance);
     }
 
-    CoreBayesianFilter::StateWithCovariance UnscentedKalmanFilter::UpdateState(const ValueAndCovariance & predicted_measurement,
-        const StateWithCovariance & measurement) {
+    void UnscentedKalmanFilter::UpdateState(const ValueAndCovariance & predicted_measurement, const StateWithCovariance & measurement) {
         /* Calculate T */
         auto T = std::accumulate(sigma_points_.begin(), sigma_points_.end(),
             static_cast<Eigen::MatrixXf>(Eigen::MatrixXf::Zero(dimension_, measurement_dimension_)),
@@ -148,9 +140,7 @@ namespace bf
 
         /* Calculate estimate */
         auto innovation = static_cast<Eigen::VectorXf>(std::get<0>(measurement) - predicted_measurement.first);
-        auto estimated_state = static_cast<Eigen::VectorXf>(static_cast<Eigen::VectorXf>(predicted_state_) + static_cast<Eigen::VectorXf>(kalman_gain * innovation));
-        auto estimated_covariance = static_cast<Eigen::MatrixXf>(predicted_covariance_ - static_cast<Eigen::MatrixXf>(kalman_gain * predicted_measurement.second * kalman_gain.transpose()));
-
-        return std::make_tuple(estimated_state, estimated_covariance);
+        estimated_state_ = static_cast<Eigen::VectorXf>(static_cast<Eigen::VectorXf>(predicted_state_) + static_cast<Eigen::VectorXf>(kalman_gain * innovation));
+        estimated_covariance_ = static_cast<Eigen::MatrixXf>(predicted_covariance_ - static_cast<Eigen::MatrixXf>(kalman_gain * predicted_measurement.second * kalman_gain.transpose()));
     }
 }   // namespace bf

@@ -30,12 +30,10 @@ namespace bf
         auto time_delta = static_cast<float>(measurement.timestamp - previous_timestamp_);
         previous_timestamp_ = measurement.timestamp;
         
-        auto [predicted_state, predicted_covariance] = Prediction(time_delta);
-        auto [state, covariance] = Correction(measurement, predicted_state, predicted_covariance);
+        Prediction(time_delta);
+        Correction(measurement);
 
-        ConvertEstimateToOutput(state, covariance);
-        estimated_state_ = state;
-        estimated_covariance_ = covariance;
+        ConvertEstimateToOutput();
     }
     
     const bf_io::ValueWithTimestampAndCovariance & CoreBayesianFilter::GetEstimation(void) {
@@ -68,39 +66,39 @@ namespace bf
         return std::make_tuple(measurementr_value, covariance);
     }
 
-    void CoreBayesianFilter::ConvertEstimateToOutput(const Eigen::VectorXf & state, const Eigen::MatrixXf & covariance) {
+    void CoreBayesianFilter::ConvertEstimateToOutput(void) {
         state_.timestamp = previous_timestamp_;
-        state_.state = ConvertVectorxToState(state);
-        state_.covariance = ConvertMatrixToCovariance(covariance);
+        state_.state = ConvertVectorxToState();
+        state_.covariance = ConvertMatrixToCovariance();
     }
 
-    std::vector<float> CoreBayesianFilter::ConvertVectorxToState(const Eigen::VectorXf & state) const {
-        std::vector<float> output(state.size());
+    std::vector<float> CoreBayesianFilter::ConvertVectorxToState(void) const {
+        std::vector<float> output(estimated_state_.size());
 
-        for (auto idx = 0u; idx < state.size(); idx++)
-            output.at(idx) = state(idx);
+        for (auto idx = 0u; idx < estimated_state_.size(); idx++)
+            output.at(idx) = estimated_state_(idx);
 
         return output;
     }
 
-    bf_io::Covariance CoreBayesianFilter::ConvertMatrixToCovariance(const Eigen::MatrixXf & covariance) const {
+    bf_io::Covariance CoreBayesianFilter::ConvertMatrixToCovariance(void) const {
         bf_io::Covariance output;
         
-        if (covariance.rows() != covariance.cols())
+        if (estimated_covariance_.rows() != estimated_covariance_.cols())
             throw std::invalid_argument("CoreBayesianFilter::ConvertMatrixToCovariance - invalid matrix size!");
 
-        auto size = covariance.rows();
+        auto size = estimated_covariance_.rows();
 
         output.diagonal.resize(size);
         output.lower_triangle.resize((size) * (size - 1u) / 2u);
 
         for (auto idx = 0u; idx < size; idx++)
-           output.diagonal.at(idx) = covariance(idx, idx);
+           output.diagonal.at(idx) = estimated_covariance_(idx, idx);
 
         auto idx = 0u;
         for (auto r = 1u; r < size; r++)
             for (auto c = 0u; c < r; c++)
-                output.lower_triangle.at(idx++) = covariance(r, c);
+                output.lower_triangle.at(idx++) = estimated_covariance_(r, c);
 
         return output;
     }
