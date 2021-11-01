@@ -19,14 +19,16 @@ namespace bf
 {
     ParticleFilter::ParticleFilter(const bf_io::FilterCalibration & calibration)
         : CoreBayesianFilter(calibration)
-        , samples_number_{dimension_ * 20u}
+        , samples_number_{dimension_ * 500u}
         , distribution_weighted_points_{std::vector<WeightedSample>(samples_number_)}
         , c_(std::vector<float>(samples_number_))
         , uniform_distribution_{std::make_unique<std::uniform_real_distribution<float>>(0.0f, 1.0f / static_cast<float>(samples_number_))} {
         std::for_each(distribution_weighted_points_.begin(), distribution_weighted_points_.end(),
             [this](WeightedSample & weighted_sample) {
                 weighted_sample.first = 1.0f / static_cast<float>(samples_number_);
-                weighted_sample.second = 50.0f * Eigen::VectorXf::Random(dimension_);
+                weighted_sample.second = 10.0f * Eigen::VectorXf::Random(dimension_);
+                for (auto index = 1u; index < dimension_; index += 2u)
+                    weighted_sample.second(index) = 0.0f;
             }
         );
 
@@ -63,11 +65,23 @@ namespace bf
                 auto predicted_observation = observation_(weighted_sample.second);
                 auto distance = predicted_observation - y;
 
-                auto exp_argument = -0.5f * distance.transpose() * R * distance;
+                auto jac = observation_jacobian_(weighted_sample.second);
+                auto sigma = static_cast<Eigen::MatrixXf>(jac * estimated_covariance_ * jac.transpose() + R);
+                auto exp_argument = -0.5f * distance.transpose() * sigma.inverse() * distance;
                 auto denumerator = std::pow(2.0f * std::numbers::pi_v<float>, 0.5f * static_cast<float>(dimension_) * std::sqrt(R.determinant()));
 
                 weighted_sample.first = std::exp(exp_argument(0)) / denumerator;
                 weights_sum_ += weighted_sample.first;
+
+                // std::cout << "\n ============================== \n Point \n" << weighted_sample.second << "\n";
+                // std::cout << "\n Predicted observation \n" << predicted_observation << "\n";
+                // std::cout << "\n jac \n" << jac << "\n";
+                // std::cout << "\n estimated_covariance_ \n" << estimated_covariance_ << "\n";
+                // std::cout << "\n R \n" << R << "\n";
+                // std::cout << "\n sigma \n" << sigma << "\n";
+                // std::cout << "\n Y \n" << y << "\n";
+                // std::cout << "\n distance \n" << distance << "\n";
+                // std::cout << "\n Weight \n" << weighted_sample.first << "\n";
             }
         );
     }
@@ -106,9 +120,22 @@ namespace bf
         estimated_state_ = std::accumulate(distribution_weighted_points_.begin(), distribution_weighted_points_.end(),
             static_cast<Eigen::VectorXf>(Eigen::VectorXf::Zero(dimension_)),
             [this](Eigen::VectorXf accumulated_mean, WeightedSample sample_point) {
+                // std::cout << "\n *************** \n Point \n" << sample_point.second << "\n";
+                // std::cout << "\n Weight \n" << sample_point.first << "\n";
                 return accumulated_mean + sample_point.second * sample_point.first;
             }
         );
+
+        // std::cout << "\n +++++++++++++++++ \n ESTIMATION \n" << estimated_state_ << "\n";
+
+        // auto max_element = std::max_element(distribution_weighted_points_.begin(), distribution_weighted_points_.end(),
+        //     [](const WeightedSample & lhs, const WeightedSample & rhs) {
+        //         return lhs.first < rhs.first;
+        //     }
+        // );
+        // std::cout << "\n ################### \n Point \n" << (*max_element).second << "\n";
+        // std::cout << "\n Weight \n" << (*max_element).first << "\n";
+
 
         /* Estimate covariance */
         estimated_covariance_ = std::accumulate(distribution_weighted_points_.begin(), distribution_weighted_points_.end(),

@@ -19,13 +19,17 @@
 namespace plt = matplotlibcpp;
 
 int main(int argc, char *argv[]) {
-    if (argc != 2) {
+    if (argc != 4) {
         std::cout << "Invalid Number of arguments!";
         return EXIT_FAILURE;
     }
 
-    std::string argument(argv[1]);
-    const auto size = std::stoi(argument);
+    std::string argument_1(argv[1]);
+    const auto size = std::stoi(argument_1);
+    std::string argument_2(argv[2]);
+    const float range_std = std::stof(argument_2);
+    std::string argument_3(argv[3]);
+    const float azimuth_std = std::stof(argument_3);
 
     bf_io::FilterCalibration calibrations;
 
@@ -114,8 +118,8 @@ int main(int argc, char *argv[]) {
     calibrations.measurement_dimension = 2u;
     calibrations.proccess_noise_covariance = static_cast<Eigen::MatrixXf>(Eigen::MatrixXf::Identity(4, 4));
     calibrations.proccess_noise_covariance(0, 0) = 10.0f;
-    calibrations.proccess_noise_covariance(1, 1) = 1.0f;
-    calibrations.proccess_noise_covariance(2, 2) = 10.0f;
+    calibrations.proccess_noise_covariance(1, 1) = 10.0f;
+    calibrations.proccess_noise_covariance(2, 2) = 1.0f;
     calibrations.proccess_noise_covariance(3, 3) = 1.0f;
 
     /* Create filters */
@@ -127,7 +131,7 @@ int main(int argc, char *argv[]) {
     bf_io::ValueWithTimestampAndCovariance measurement;
     measurement.timestamp = 0.0;
     measurement.state = {10.0f, 10.0f};
-    measurement.covariance.diagonal = {1.5f, 0.5f};
+    measurement.covariance.diagonal = {std::pow(range_std, 2.0f), std::pow(azimuth_std, 2.0f)};
     measurement.covariance.lower_triangle = {0.0f};
 
     std::vector<double> ref_x(size, 10.0f);
@@ -149,8 +153,8 @@ int main(int argc, char *argv[]) {
     std::vector<double> meas_y(size);
 
     std::default_random_engine generator;
-    std::normal_distribution<float> distribution_range(0.0f, 1.5f);
-    std::normal_distribution<float> distribution_azimuth(0.0f, 0.5f);
+    std::normal_distribution<float> distribution_range(0.0f, range_std);
+    std::normal_distribution<float> distribution_azimuth(0.0f, azimuth_std);
 
     for (auto index = 0; index < size; index++)
     {
@@ -240,9 +244,9 @@ int main(int argc, char *argv[]) {
 
     plt::figure();
     plt::plot(meas_x, meas_y, "k.", {{"label", "Measurement"}});
-    plt::plot(ekf_x, ekf_y, "b", {{"label", "EKF"}});
-    plt::plot(ukf_x, ukf_y, "r", {{"label", "UKF"}});
-    plt::plot(pf_x, pf_y, "g", {{"label", "PF"}});
+    plt::plot(ekf_x, ekf_y, "b.", {{"label", "EKF"}});
+    plt::plot(ukf_x, ukf_y, "r.", {{"label", "UKF"}});
+    plt::plot(pf_x, pf_y, "g.", {{"label", "PF"}});
     plt::plot(ref_x, ref_y, "m--", {{"label", "Reference"}});
     plt::title("Trajectory");
     plt::grid();

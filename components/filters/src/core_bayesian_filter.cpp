@@ -23,7 +23,7 @@ namespace bf
         measurement_dimension_ = calibration.measurement_dimension;
 
         estimated_state_ = Eigen::VectorXf::Random(dimension_);
-        estimated_covariance_ = 10.0f * Eigen::MatrixXf::Identity(dimension_, dimension_);
+        estimated_covariance_ = Eigen::MatrixXf::Identity(dimension_, dimension_);
     }
 
     void CoreBayesianFilter::RunFilter(const bf_io::ValueWithTimestampAndCovariance & measurement) {
