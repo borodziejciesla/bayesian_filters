@@ -27,10 +27,8 @@ namespace bf
             explicit UnscentedKalmanFilter(const bf_io::FilterCalibration & calibration);
 
         protected:
-            StateWithCovariance Prediction(const float time_delta);
-            StateWithCovariance Correction(const bf_io::ValueWithTimestampAndCovariance & measurement,
-                const Eigen::VectorXf & predicted_state,
-                const Eigen::MatrixXf & predicted_covariance);
+            void Prediction(const float time_delta) override;
+            void Correction(const bf_io::ValueWithTimestampAndCovariance & measurement) override;
 
         private:
             void FindSigmaPoints(void);
@@ -40,11 +38,7 @@ namespace bf
             using ValueAndCovariance = std::pair<Eigen::VectorXf, Eigen::MatrixXf>;
 
             ValueAndCovariance PredictMeasurement(const StateWithCovariance & measurement);
-            StateWithCovariance UpdateState(const ValueAndCovariance & predicted_measurement,
-                const StateWithCovariance & measurement);
-
-            Eigen::VectorXf predicted_state_;
-            Eigen::MatrixXf predicted_covariance_;
+            void UpdateState(const ValueAndCovariance & predicted_measurement, const StateWithCovariance & measurement);
             
             size_t sigma_points_number_ = 0u;
             float lambda_ = 3.0f;

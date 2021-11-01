@@ -11,6 +11,7 @@
 #define INCLUDE_IO_FILTER_CALIBRATION_HPP_
 
 #include <functional>
+#include <optional>
 
 #include <Eigen/Dense>
 
@@ -21,7 +22,9 @@ namespace bf_io
         size_t state_dimension;
         size_t measurement_dimension;
 
-        std::function<Eigen::VectorXf(const Eigen::VectorXf & state, const float time_delta)> transition;
+        std::function<Eigen::VectorXf(const Eigen::VectorXf & state,
+            const std::optional<Eigen::VectorXf> & noise,
+            const float time_delta)> transition;
         std::function<Eigen::MatrixXf(const Eigen::VectorXf & state, const float time_delta)> transition_jacobian;
 
         std::function<Eigen::VectorXf(const Eigen::VectorXf & state)> observation;

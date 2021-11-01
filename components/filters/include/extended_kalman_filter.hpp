@@ -27,10 +27,8 @@ namespace bf
             explicit ExtendedKalmanFilter(const bf_io::FilterCalibration & calibration);
 
         protected:
-            StateWithCovariance Prediction(const float time_delta);
-            StateWithCovariance Correction(const bf_io::ValueWithTimestampAndCovariance & measurement,
-                const Eigen::VectorXf & predicted_state,
-                const Eigen::MatrixXf & predicted_covariance);
+            void Prediction(const float time_delta) override;
+            void Correction(const bf_io::ValueWithTimestampAndCovariance & measurement) override;
     };
 }   // namespace bf
 
